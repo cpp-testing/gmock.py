@@ -33,11 +33,9 @@ def generate_mocks(node, namespace, path, header_guard = header_guard, google_mo
             result = []
             first = True
             for method in methods:
-                if first:
-                    first = False
-                else:
-                    result.append('\n')
+                not first and result.append('\n')
                 result.append('    ' + method)
+                first = False
             return ''.join(result)
 
         mock = []
