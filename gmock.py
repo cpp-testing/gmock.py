@@ -28,11 +28,9 @@ public:
 """
 
 def is_pure_virtual_function(tokens):
-    assert(len(tokens) >= 2)
-    return tokens[0].spelling == 'virtual' and tokens[-2].spelling == '0'
+    return len(tokens) >= 4 and tokens[0].spelling == 'virtual' and tokens[-3].spelling == '=' and tokens[-2].spelling == '0'
 
 def is_const_function(tokens):
-    assert(len(tokens) >= 4)
     assert(is_pure_virtual_function(tokens))
     return tokens[-4].spelling == 'const'
 
@@ -65,13 +63,12 @@ def generate_mocks(node, namespace, path):
             class_name = base_class.split("::")[-1]
             mock_class_name = class_name + "Mock.hpp"
 
-            f = open(path + "/" + mock_class_name, "w")
-            f.write(header_guard % {
-                'guard' : mock_class_name.replace('.', '_').upper(),
-                'include' : class_name + ".hpp",
-                'mock' : generate_mock(base_class, methods, class_name)
-            })
-            f.close()
+            with open(path + "/" + mock_class_name, 'w') as file:
+                file.write(header_guard % {
+                    'guard' : mock_class_name.replace('.', '_').upper(),
+                    'include' : class_name + ".hpp",
+                    'mock' : generate_mock(base_class, methods, class_name)
+                })
 
 def generate_mock(base_class, methods, class_name):
     mock = []
@@ -85,16 +82,15 @@ def generate_mock(base_class, methods, class_name):
 def get_mocks(node, namespace, mocks, class_decl = ""):
     if node.kind == CursorKind.CXX_METHOD:
         tokens = list(node.get_tokens())
-        if len(tokens) >= 4:
-            if is_pure_virtual_function(tokens):
-                mocks.setdefault(class_decl, []).append(
-                    "MOCK_%(const)sMETHOD%(nr)s(%(name)s, %(result_type)s(%(args)s));" % {
-                    'const' : is_const_function(tokens) and 'CONST_' or '',
-                    'nr' : len(list(node.get_arguments())),
-                    'name' : node.spelling,
-                    'result_type' : get_result_type(tokens, node.spelling),
-                    'args' : node.displayname[len(node.spelling) + 1 : -1]
-               })
+        if is_pure_virtual_function(tokens):
+            mocks.setdefault(class_decl, []).append(
+                "MOCK_%(const)sMETHOD%(nr)s(%(name)s, %(result_type)s(%(args)s));" % {
+                'const' : is_const_function(tokens) and 'CONST_' or '',
+                'nr' : len(list(node.get_arguments())),
+                'name' : node.spelling,
+                'result_type' : get_result_type(tokens, node.spelling),
+                'args' : node.displayname[len(node.spelling) + 1 : -1]
+           })
     elif node.kind == CursorKind.CLASS_DECL or node.kind == CursorKind.NAMESPACE:
         class_decl = class_decl == "" and node.displayname or class_decl + (node.displayname == "" and "" or "::") + node.displayname
         if class_decl.startswith(namespace):
@@ -109,15 +105,11 @@ def generate_includes(includes):
     return ''.join(result)
 
 def parse(files):
-    index = Index.create(excludeDecls = True)
-
-    tu = index.parse(
+    return Index.create(excludeDecls = True).parse(
         path = "~.hpp"
       , unsaved_files = [("~.hpp", generate_includes(files))]
       , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
     )
-
-    return tu.cursor
 
 def create_dir(path):
     if not os.path.exists(path):
@@ -129,7 +121,7 @@ def main(args):
         return -1
 
     create_dir(path = args[1])
-    generate_mocks(node = parse(files = args[3:]), namespace = args[2], path = args[1])
+    generate_mocks(node = parse(files = args[3:]).cursor, namespace = args[2], path = args[1])
     return 0
 
 if __name__ == "__main__":
