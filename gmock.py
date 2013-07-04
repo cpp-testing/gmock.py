@@ -29,15 +29,41 @@ public:
 
 class mock_method:
     operators = {
-        'operator()' : 'call_operator'
+        'operator()' : 'call_operator',
+        'operator[]' : 'subscript_operator'
     }
 
-    def __init__(self, result_type, name, is_const, args_size, args):
+    def __init__(self, result_type, name, is_const, args_size, args, args_prefix = 'arg'):
         self.result_type = result_type
         self.name = name
         self.is_const = is_const
         self.args_size = args_size
         self.args = args
+        self.args_prefix = args_prefix
+
+    def __named_args(self):
+        result = []
+        for i in range(0, self.args_size):
+            if i > 0:
+                result.append(', ')
+            result.append(self.args_prefix + str(i))
+        return ''.join(result)
+
+    def __named_args_with_types(self):
+        result = []
+        in_type = False
+        i = 0
+        for c in self.args:
+            if c in ['<', '(']:
+                in_type = True
+            elif c in ['>', ')']:
+                in_type = False
+            if not in_type and c == ',':
+                result.append(' ' + self.args_prefix + str(i))
+                i+=1
+            result.append(c)
+        result.append(' ' + self.args_prefix + str(i))
+        return ''.join(result)
 
     def to_string(self, gap = '    '):
         mock = []
@@ -45,13 +71,13 @@ class mock_method:
         if self.name in self.operators:
             mock.append(gap)
             mock.append(
-                "virtual %(result_type)s %(name)s(%(args)s) %(const)s { %(return)s %(body)s; }\n" % {
+                "virtual %(result_type)s %(name)s(%(args)s) %(const)s{ %(return)s %(body)s; }\n" % {
                     'result_type' : self.result_type,
                     'name' : self.name,
-                    'args' : self.args,
+                    'args' : self.__named_args_with_types(),
                     'const' : self.is_const and 'const' or '',
                     'return' : self.result_type.strip() != 'void' and 'return' or '',
-                    'body' : self.operators[self.name] + "()"
+                    'body' : self.operators[self.name] + "(" + self.__named_args() + ")"
                 }
             )
             name = self.operators[self.name]
@@ -86,10 +112,11 @@ class mock_generator:
         assert(self.__is_pure_virtual_function(tokens))
         result_type = []
         for token in tokens[1:]:
-            if token.spelling == name or \
-               token.spelling == 'operator':
+            if token.spelling in [name, 'operator']:
                 break
-            result_type.append(token.spelling + ' ')
+            result_type.append(token.spelling)
+            if token.spelling in ['const', 'volatile']:
+                result_type.append(' ')
         return ''.join(result_type)
 
     def __format_mock_methods(self, mock_methods):
@@ -126,7 +153,7 @@ class mock_generator:
                          node.displayname[len(node.spelling) + 1 : -1]
                     )
                 )
-        elif node.kind == CursorKind.CLASS_DECL or node.kind == CursorKind.NAMESPACE:
+        elif node.kind in [CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
             class_decl = class_decl == "" and node.displayname \
                 or class_decl + (node.displayname == "" and "" or "::") + node.displayname
             if class_decl.startswith(self.decl):
