@@ -52,7 +52,6 @@ class mock_generator:
     def __is_pure_virtual_function(self, tokens):
         return len(tokens) >= 4 and                     \
                self.__is_virtual_function(tokens) and   \
-               tokens[0].spelling == 'virtual' and      \
                tokens[-3].spelling == '=' and           \
                tokens[-2].spelling == '0'
 
