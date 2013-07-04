@@ -49,7 +49,11 @@ namespace {
 class C2
 {
 public:
-    virtual void f0();
+    virtual void f0() {
+        f1();
+    }
+
+private:
     virtual void f1() = 0;
 };
 
