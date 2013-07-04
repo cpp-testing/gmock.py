@@ -6,7 +6,7 @@
 
 ### Usage
 ```
-./gmock.py [directory] [limit_to_interfaces_within_decl]
+./gmock.py <directory> <limit_to_interfaces_within_decl> files...
 ```
 
 ### Example

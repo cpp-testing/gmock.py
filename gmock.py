@@ -174,7 +174,7 @@ def main(args):
         )
 
     if len(args) < 3:
-        print("usage: " + args[0] + " [dir_for_generated_mocks] [limit_to_interfaces_within_decl]")
+        print("usage: " + args[0] + " <dir_for_generated_mocks> <limit_to_interfaces_within_decl> files...")
         return -1
 
     create_dir(path = args[1])
