@@ -42,6 +42,7 @@ class C1
 {
 public:
     explicit C1(int);
+    virtual ~C1() { }
 
     void f0();
     virtual void f1();
@@ -55,6 +56,8 @@ namespace {
 class C2
 {
 public:
+    virtual ~C2() { }
+
     virtual void f0() {
         f1();
     }
