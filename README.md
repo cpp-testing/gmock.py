@@ -1,15 +1,15 @@
 **Google Mock** mocks generator based on libclang
 
-# Requirements
+### Requirements
  + [python](http://www.python.org)
  + [libclang](http://clang.llvm.org)
 
-# Usage
+### Usage
 ```
 ./gmock.py [directory] [limit_to_interfaces_within_decl]
 ```
 
-# Example
+### Example
 ```
 ./gmock.py test/mocks "namespace::class" file1.hpp file2.hpp
 ```
