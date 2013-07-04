@@ -11,7 +11,7 @@
 
 ### Example
 ```
-./gmock.py test/mocks "namespace::class" file1.hpp file2.hpp
+./gmock.py "test/mocks" "namespace::class" file1.hpp file2.hpp
 ```
 will create directory 'test/mocks' and mocks within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration:
