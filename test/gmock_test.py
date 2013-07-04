@@ -27,6 +27,9 @@ public:
     MOCK_CONST_METHOD1(f6, boost :: shared_ptr < int > (const boost::shared_ptr<int> &));
     MOCK_CONST_METHOD0(f7, const int & ());
     MOCK_METHOD0(f8, boost :: function < void ( int ) > ());
+    MOCK_CONST_METHOD2(f9, boost :: non_type < int , 0 > (const boost::non_type<int, 1> &, const boost::non_type<int, 2> &));
+    virtual int  operator()()  { return call_operator(); }
+    MOCK_METHOD0(call_operator, int ());
 };
 
 } // namespace n1

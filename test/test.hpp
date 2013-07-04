@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
+#include <boost/non_type.hpp>
 
 class T1
 {
@@ -28,6 +29,8 @@ public:
     virtual boost::shared_ptr<int> f6(const boost::shared_ptr<int>&) const = 0;
     virtual const int& f7() const = 0;
     virtual boost::function<void(int)> f8() = 0;
+    virtual boost::non_type<int, 0> f9(const boost::non_type<int, 1>&, const boost::non_type<int, 2>&) const = 0;
+    virtual int operator()() = 0;
 };
 
 namespace n2 {

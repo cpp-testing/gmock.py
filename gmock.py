@@ -28,6 +28,10 @@ public:
 """
 
 class mock_method:
+    operators = {
+        'operator()' : 'call_operator'
+    }
+
     def __init__(self, result_type, name, is_const, args_size, args):
         self.result_type = result_type
         self.name = name
@@ -35,15 +39,34 @@ class mock_method:
         self.args_size = args_size
         self.args = args
 
-    def to_string(self):
-        return \
+    def to_string(self, gap = '    '):
+        mock = []
+        name = self.name
+        if self.name in self.operators:
+            mock.append(gap)
+            mock.append(
+                "virtual %(result_type)s %(name)s(%(args)s) %(const)s { %(return)s %(body)s; }\n" % {
+                    'result_type' : self.result_type,
+                    'name' : self.name,
+                    'args' : self.args,
+                    'const' : self.is_const and 'const' or '',
+                    'return' : self.result_type.strip() != 'void' and 'return' or '',
+                    'body' : self.operators[self.name] + "()"
+                }
+            )
+            name = self.operators[self.name]
+
+        mock.append(gap)
+        mock.append(
             "MOCK_%(const)sMETHOD%(nr)s(%(name)s, %(result_type)s(%(args)s));" % {
             'const' : self.is_const and 'CONST_' or '',
             'nr' : self.args_size,
-            'name' : self.name,
+            'name' : name,
             'result_type' : self.result_type,
             'args' : self.args
-        }
+        })
+
+        return ''.join(mock)
 
 class mock_generator:
     def __is_virtual_function(self, tokens):
@@ -63,7 +86,8 @@ class mock_generator:
         assert(self.__is_pure_virtual_function(tokens))
         result_type = []
         for token in tokens[1:]:
-            if token.spelling == name:
+            if token.spelling == name or \
+               token.spelling == 'operator':
                 break
             result_type.append(token.spelling + ' ')
         return ''.join(result_type)
@@ -73,7 +97,7 @@ class mock_generator:
         first = True
         for mock_method in mock_methods:
             not first and result.append('\n')
-            result.append('    ' + mock_method.to_string())
+            result.append(mock_method.to_string())
             first = False
         return ''.join(result)
 
