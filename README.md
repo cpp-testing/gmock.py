@@ -28,8 +28,8 @@ find project -iname "*.h" -or -iname "*.hpp" |
 ```
 
 ### Features
- + its reliable, since its using clang compiler
- + its fast (tested on project ~200 kloc -> generation of mocs took 3-5 seconds on common laptop)
+ + it's reliable (based on clang compiler)
+ + it's fast (tested on project ~200 kloc -> generation of mocs took 3-5 seconds on common laptop)
  + output file might be easily adopted to the project via configuration file
  + easy integration with the project build system -> generate mocks files for each interface, limited to the project (for example via project namespace), from given files
  + generate pretty output (one mock per file)
