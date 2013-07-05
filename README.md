@@ -21,6 +21,11 @@ git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 will create directory 'test/mocks' and mocks within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
 
+### Build system example
+```
+    find project -iname "*.h" -or -iname "*.hpp" | xargs gmock.py "project/conf/gmock.conf" "project/generated/mocks" "Project"
+```
+
 ### Configuration file
 ```
 #vars:
