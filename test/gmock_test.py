@@ -29,12 +29,21 @@ public:
     MOCK_METHOD0(f8, boost::function<void(int)>());
     MOCK_CONST_METHOD2(f9, boost::non_type<int,0>(const boost::non_type<int, 1> &, const boost::non_type<int, 2> &));
     MOCK_METHOD0(f10, const int*const ());
-    virtual int operator()( arg0) { return call_operator(); }
-    MOCK_METHOD0(call_operator, int());
-    virtual void operator()(int arg0, double arg1, boost::function<void (int, double)> arg2, const boost::non_type<int, 1> & arg3, const std::string & arg4) {  call_operator(arg0, arg1, arg2, arg3, arg4); }
-    MOCK_METHOD5(call_operator, void(int, double, boost::function<void (int, double)>, const boost::non_type<int, 1> &, const std::string &));
-    virtual double operator[](int arg0) { return subscript_operator(arg0); }
-    MOCK_METHOD1(subscript_operator, double(int));
+    MOCK_METHOD0(f11, const void());
+    MOCK_METHOD0(f12, const void());
+    MOCK_METHOD0(f13, const void());
+    MOCK_METHOD0(f14, const void());
+    MOCK_METHOD0(f15,  const void());
+    MOCK_METHOD0(f16, const  void());
+    MOCK_METHOD0(f17, const  void());
+    virtual int operator()() { return function_call_or_cast_operator(); }
+    MOCK_METHOD0(function_call_or_cast_operator, int());
+    virtual void operator()(int arg0, double arg1, boost::function<void (int, double)> arg2, const boost::non_type<int, 1> & arg3, const std::string & arg4) {  function_call_or_cast_operator(arg0, arg1, arg2, arg3, arg4); }
+    MOCK_METHOD5(function_call_or_cast_operator, void(int, double, boost::function<void (int, double)>, const boost::non_type<int, 1> &, const std::string &));
+    virtual double operator[](int arg0) { return array_subscript_operator(arg0); }
+    MOCK_METHOD1(array_subscript_operator, double(int));
+    virtual int* operator->() const { return member_selection_operator(); }
+    MOCK_CONST_METHOD0(member_selection_operator, int*());
 };
 
 } // namespace n1

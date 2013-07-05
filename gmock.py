@@ -29,8 +29,44 @@ public:
 
 class mock_method:
     operators = {
-        'operator()' : 'call_operator',
-        'operator[]' : 'subscript_operator'
+        'operator,'   : 'comma_operator',
+        'operator!'   : 'logical_not_operator',
+        'operator!='  : 'inequality_operator',
+        'operator%'   : 'modulus_operator',
+        'operator%='  : 'modulus_assignment_operator',
+        'operator&'   : 'address_of_or_bitwise_and_operator',
+        'operator&&'  : 'logical_and_operator',
+        'operator&='  : 'bitwise_and_assignment_operator',
+        'operator()'  : 'function_call_or_cast_operator',
+        'operator*'   : 'multiplication_or_dereference_operator',
+        'operator*='  : 'multiplication_assignment_operator',
+        'operator+'   : 'addition_or_unary_plus_operator',
+        'operator++'  : 'increment1_operator',
+        'operator+='  : 'addition_assignment_operator',
+        'operator-'   : 'subtraction_or_unary_negation_operator',
+        'operator--'  : 'decrement1_operator',
+        'operator-='  : 'subtraction_assignment_operator',
+        'operator->'  : 'member_selection_operator',
+        'operator->*' : 'pointer_to_member_selection_operator',
+        'operator/'   : 'division_operator',
+        'operator/='  : 'division_assignment_operator',
+        'operator<'   : 'less_than_operator',
+        'operator<<'  : 'left_shift_operator',
+        'operator<<=' : 'left_shift_assignment_operator',
+        'operator<='  : 'less_than_or_equal_to_operator',
+        'operator='   : 'assignment_operator',
+        'operator=='  : 'equality_operator',
+        'operator>'   : 'greater_than_operator',
+        'operator>='  : 'greater_than_or_equal_to_operator',
+        'operator>>'  : 'right_shift_operator',
+        'operator>>=' : 'right_shift_assignment_operator',
+        'operator[]'  : 'array_subscript_operator',
+        'operator^'   : 'exclusive_or_operator',
+        'operator^='  : 'exclusive_or_assignment_operator',
+        'operator|'   : 'bitwise_inclusive_or_operator',
+        'operator|='  : 'bitwise_inclusive_or_assignment_operator',
+        'operator||'  : 'logical_or_operator',
+        'operator~'   : 'complement_operator'
     }
 
     def __init__(self, result_type, name, is_const, args_size, args, args_prefix = 'arg'):
@@ -50,6 +86,8 @@ class mock_method:
         return ''.join(result)
 
     def __named_args_with_types(self):
+        if (self.args == ''):
+            return ''
         result = []
         in_type = False
         i = 0
@@ -75,7 +113,7 @@ class mock_method:
                     'result_type' : self.result_type,
                     'name' : self.name,
                     'args' : self.__named_args_with_types(),
-                    'const' : self.is_const and 'const' or '',
+                    'const' : self.is_const and 'const ' or '',
                     'return' : self.result_type.strip() != 'void' and 'return' or '',
                     'body' : self.operators[self.name] + "(" + self.__named_args() + ")"
                 }
@@ -96,7 +134,7 @@ class mock_method:
 
 class mock_generator:
     def __is_virtual_function(self, tokens):
-        return len(tokens) >= 0 and tokens[0].spelling == 'virtual'
+        return len(tokens) >= 0 and 'virtual' in [token.spelling for token in tokens]
 
     def __is_pure_virtual_function(self, tokens):
         return len(tokens) >= 4 and                     \
@@ -111,10 +149,11 @@ class mock_generator:
     def __get_result_type(self, tokens, name):
         assert(self.__is_pure_virtual_function(tokens))
         result_type = []
-        for token in tokens[1:]:
+        for token in tokens:
             if token.spelling in [name, 'operator']:
                 break
-            result_type.append(token.spelling)
+            if token.spelling not in ['virtual', 'inline', 'volatile']:
+                result_type.append(token.spelling)
             if token.spelling in ['const', 'volatile']:
                 result_type.append(' ')
         return ''.join(result_type)
