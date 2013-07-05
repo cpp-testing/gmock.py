@@ -21,10 +21,10 @@ class TestGMock(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(path = self.generated_dir, ignore_errors = True)
 
-    def test_gmock_args_fail(self):
+    def test_gmock_args_fail_none(self):
         self.assertEqual(-1, gmock.main(['']))
 
-    def test_gmock_args_fail(self):
+    def test_gmock_args_fail_file_not_found(self):
         self.assertEqual(0, gmock.main(['', '../gmock.conf', self.generated_dir, '', 'not_found.hpp' ]))
 
     def test_gmock_success(self):
