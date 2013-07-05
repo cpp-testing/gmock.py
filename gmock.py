@@ -60,8 +60,7 @@ class mock_method:
     def __named_args(self):
         result = []
         for i in range(0, self.args_size):
-            if i > 0:
-                result.append(', ')
+            i and result.append(', ')
             result.append(self.args_prefix + str(i))
         return ''.join(result)
 
@@ -145,9 +144,8 @@ class mock_generator:
 
     def __pretty_mock_methods(self, mock_methods):
         result = []
-        first = True
-        for mock_method in mock_methods:
-            not first and result.append('\n')
+        for i, mock_method in enumerate(mock_methods):
+            i and result.append('\n')
             result.append(mock_method.to_string())
             first = False
         return ''.join(result)
@@ -155,16 +153,14 @@ class mock_generator:
     def __pretty_namespaces_begin(self, decl):
         result = []
         for i, namespace in enumerate(decl.split("::")[0 : -1]):
-            if i > 0:
-                result.append('\n')
+            i and result.append('\n')
             result.append("namespace " + namespace + " {")
         return ''.join(result)
 
     def __pretty_namespaces_end(self, decl):
         result = []
         for i, namespace in enumerate(decl.split("::")[0 : -1]):
-            if i > 0:
-                result.append('\n')
+            i and result.append('\n')
             result.append("} // namespace " + namespace)
         return ''.join(result)
 
