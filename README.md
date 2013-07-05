@@ -23,7 +23,8 @@ which will be within 'namespace::class' declaration
 
 ### Build system example
 ```
-    find project -iname "*.h" -or -iname "*.hpp" | xargs gmock.py "project/conf/gmock.conf" "project/generated/mocks" "Project"
+find project -iname "*.h" -or -iname "*.hpp" |
+    xargs gmock.py "project/conf/gmock.conf" "project/generated/mocks" "Project"
 ```
 
 ### Configuration file
