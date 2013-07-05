@@ -7,26 +7,6 @@ from clang.cindex import TranslationUnit
 from clang.cindex import Cursor
 from clang.cindex import CursorKind
 
-header_guard = """#ifndef %(guard)s
-#define %(guard)s
-
-#include <gmock/gmock.h>
-#include "%(include)s"
-
-%(mock)s
-#endif
-
-"""
-
-google_mock = """
-class %(base_class)sMock : public %(base_class)s
-{
-public:
-%(mock_methods)s
-};
-
-"""
-
 class mock_method:
     operators = {
         'operator,'   : 'comma_operator',
@@ -133,18 +113,23 @@ class mock_method:
         return ''.join(mock)
 
 class mock_generator:
+    def __is_const_function(self, tokens):
+        for token in reversed(tokens):
+            if token.spelling == 'const':
+                return True
+            elif token.spelling == ')':
+                return False
+        return False
+
     def __is_virtual_function(self, tokens):
-        return len(tokens) >= 0 and 'virtual' in [token.spelling for token in tokens]
+        return 'virtual' in [token.spelling for token in tokens]
 
     def __is_pure_virtual_function(self, tokens):
-        return len(tokens) >= 4 and                     \
+        return len(tokens) >= 3 and                     \
                self.__is_virtual_function(tokens) and   \
                tokens[-3].spelling == '=' and           \
-               tokens[-2].spelling == '0'
-
-    def __is_const_function(self, tokens):
-        assert(self.__is_pure_virtual_function(tokens))
-        return tokens[-4].spelling == 'const'
+               tokens[-2].spelling == '0' and           \
+               tokens[-1].spelling == ';'
 
     def __get_result_type(self, tokens, name):
         assert(self.__is_pure_virtual_function(tokens))
@@ -158,7 +143,7 @@ class mock_generator:
                 result_type.append(' ')
         return ''.join(result_type)
 
-    def __format_mock_methods(self, mock_methods):
+    def __pretty_mock_methods(self, mock_methods):
         result = []
         first = True
         for mock_method in mock_methods:
@@ -167,23 +152,27 @@ class mock_generator:
             first = False
         return ''.join(result)
 
-    def __generate_mock(self, base_class, mock_methods, class_name):
-        mock = []
-        for namespace in base_class.split("::")[0 : -1]:
-            mock.append("namespace " + namespace + " {" + "\n")
-        mock.append(self.google_mock % {
-            'base_class' : class_name,
-            'mock_methods' : self.__format_mock_methods(mock_methods)
-        })
-        for namespace in base_class.split("::")[0 : -1]:
-            mock.append("} // namespace " + namespace + "\n")
-        return ''.join(mock)
+    def __pretty_namespaces_begin(self, decl):
+        result = []
+        for i, namespace in enumerate(decl.split("::")[0 : -1]):
+            if i > 0:
+                result.append('\n')
+            result.append("namespace " + namespace + " {")
+        return ''.join(result)
+
+    def __pretty_namespaces_end(self, decl):
+        result = []
+        for i, namespace in enumerate(decl.split("::")[0 : -1]):
+            if i > 0:
+                result.append('\n')
+            result.append("} // namespace " + namespace)
+        return ''.join(result)
 
     def __get_mock_methods(self, node, mock_methods, class_decl = ""):
         if node.kind == CursorKind.CXX_METHOD:
             tokens = list(node.get_tokens())
             if self.__is_pure_virtual_function(tokens):
-                mock_methods.setdefault(class_decl, []).append(
+                mock_methods.setdefault(class_decl, [node.location.file.name]).append(
                     mock_method(
                          self.__get_result_type(tokens, node.spelling),
                          node.spelling,
@@ -200,26 +189,32 @@ class mock_generator:
         else:
             [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
 
-    def __init__(self, cursor, decl, path, header_guard = header_guard, google_mock = google_mock):
+    def __init__(self, cursor, decl, path, mock_file, file_template):
         self.cursor = cursor
         self.decl = decl
         self.path = path
-        self.header_guard = header_guard
-        self.google_mock = google_mock
+        self.mock_file = mock_file
+        self.file_template = file_template
 
     def generate(self):
         mock_methods = {}
         self.__get_mock_methods(self.cursor, mock_methods)
-        for base_class, mock_methods in mock_methods.iteritems():
+        for decl, mock_methods in mock_methods.iteritems():
             if len(mock_methods) > 0:
-                class_name = base_class.split("::")[-1]
-                mock_class_name = class_name + "Mock.hpp"
-                with open(self.path + "/" + mock_class_name, 'w') as file:
-                    file.write(self.header_guard % {
-                        'guard' : mock_class_name.replace('.', '_').upper(),
-                        'include' : class_name + ".hpp",
-                        'mock' : self.__generate_mock(base_class, mock_methods, class_name)
+                interface = decl.split("::")[-1]
+                mock_file = self.mock_file % { 'interface' : interface }
+                with open(self.path + "/" + mock_file, 'w') as file:
+                    file.write(self.file_template % {
+                        'mock_file' : mock_file,
+                        'guard' : mock_file.replace('.', '_').upper(),
+                        'dir' : os.path.dirname(mock_methods[0]),
+                        'file' : os.path.basename(mock_methods[0]),
+                        'namespaces_begin' : self.__pretty_namespaces_begin(decl),
+                        'interface' : interface,
+                        'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
+                        'namespaces_end' : self.__pretty_namespaces_end(decl)
                     })
+        return 0
 
 def main(args):
     def create_dir(path):
@@ -239,13 +234,20 @@ def main(args):
           , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
         )
 
-    if len(args) < 3:
-        print("usage: " + args[0] + " <dir_for_generated_mocks> <limit_to_interfaces_within_decl> files...")
+    if len(args) < 4:
+        print("usage: " + args[0] + " <config_file> <dir_for_generated_mocks> <limit_to_interfaces_within_decl> files...")
         return -1
 
-    create_dir(path = args[1])
-    mock_generator(cursor = parse(files = args[3:]).cursor, decl = args[2], path = args[1]).generate()
-    return 0
+    config = {}
+    execfile(args[1], config)
+    create_dir(path = args[2])
+    return mock_generator(
+        cursor = parse(files = args[4:]).cursor,
+        decl = args[3],
+        path = args[2],
+        mock_file = config['mock_file'],
+        file_template = config['file_template']
+    ).generate()
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

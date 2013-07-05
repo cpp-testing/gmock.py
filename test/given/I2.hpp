@@ -1,24 +1,16 @@
-#ifndef TEST1_HPP
-#define TEST1_HPP
+#ifndef I2_HPP
+#define I2_HPP
 
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/non_type.hpp>
 
-class T1
-{
-public:
-    virtual ~T1();
-
-    virtual void f() = 0;
-};
-
 namespace n1 {
 
-class T2
+class I2
 {
 public:
-    virtual ~T2();
+    virtual ~I2();
 
     virtual void f0() const = 0;
     virtual void f1(int) = 0;
@@ -46,37 +38,6 @@ public:
     virtual void* operator->() const = 0;
 };
 
-namespace n2 {
-
-class C1
-{
-public:
-    explicit C1(int);
-    virtual ~C1() { }
-
-    void f0();
-    virtual void f1();
-    virtual void f2(int) { }
-};
-
-} // namespace n2
-
-namespace {
-
-class C2
-{
-public:
-    virtual ~C2() { }
-
-    virtual void f0() {
-        f1();
-    }
-
-private:
-    virtual void f1() = 0;
-};
-
-} // namespace
 } // namespace n1
 
 #endif
