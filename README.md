@@ -1,8 +1,8 @@
 **Google Mock** mocks generator based on libclang
 
 ### Requirements
- + [python](http://www.python.org)
- + [libclang](http://clang.llvm.org)
+ + [python](http://www.python.org) (tested with 2.7 and 3.2)
+ + [libclang](http://clang.llvm.org) (tested with 3.2)
 
 ### Download
 ```
@@ -31,13 +31,14 @@ find project -iname "*.h" -or -iname "*.hpp" |
  + its reliable, since its using clang compiler
  + its fast (tested on project ~200 kloc -> generation of mocs took 3-5 seconds on common laptop)
  + output file might be easily adopted to the project via configuration file
- + easily integration with the project build system -> generate mocks files for each interface, limited to the project (for example via project namespace), from given files
+ + easy integration with the project build system -> generate mocks files for each interface, limited to the project (for example via project namespace), from given files
  + generate pretty output ;P
  + easy to extend (~200 lines of code)
  + handle c++ operators
 ```
 virtual int operator()(int, double);
-...
+```
+```
 virtual int operator()(int arg0, double arg1) {  return function_call_or_cast_operator(arg0, arg1);
 MOCK_METHOD2(function_call_or_cast_operator, int(int, double));
 ```
