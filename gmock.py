@@ -224,8 +224,8 @@ def main(args):
     def parse(files):
         def generate_includes(includes):
             result = []
-            for inc in includes:
-                result.append("#include \"%(include)s\"\n" % { 'include' : inc })
+            for include in includes:
+                result.append("#include \"%(include)s\"\n" % { 'include' : include })
             return ''.join(result)
 
         return Index.create(excludeDecls = True).parse(
