@@ -48,11 +48,11 @@ MOCK_METHOD2(function_call_or_cast_operator, int(int, double));
 ### Configuration file
 ```
 #vars:
-# * file: interface file name
-# * dir: interface directory
-# * guard: header guard
-# * interface: interface class
-# * mock_methods: generated gmock methods
+# file: interface file name
+# dir: interface directory
+# guard: header guard
+# interface: interface class
+# mock_methods: generated gmock methods
 
 mock_file = "%(interface)sMock.hpp"
 
