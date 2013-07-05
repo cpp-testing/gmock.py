@@ -24,6 +24,7 @@ class I4
 public:
     virtual ~I3() { }
     virtual void f0(bool = true) = 0;
+    virtual void f1(void) = 0;
 };
 
 } // namespace n1

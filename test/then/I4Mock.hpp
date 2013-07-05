@@ -13,6 +13,7 @@ class I4Mock : public I4
 {
 public:
     MOCK_METHOD1(f0, void(bool));
+    MOCK_METHOD0(f1, void());
 };
 
 } // namespace n1
