@@ -37,7 +37,7 @@ find project -iname "*.h" -or -iname "*.hpp" |
  + handle c++ operators
 
 ```
-    virtual int operator()(int, double);
+    virtual int operator()(int, double) = 0;
 ```
 
 ```
