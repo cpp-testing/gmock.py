@@ -1,12 +1,13 @@
 **Google Mock** mocks generator based on libclang
 
+### Requirements
+ + [python](http://www.python.org)
+ + [libclang](http://clang.llvm.org)
+
 ### Download
 ```
     git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 ```
-### Requirements
- + [python](http://www.python.org)
- + [libclang](http://clang.llvm.org)
 
 ### Usage
 ```
