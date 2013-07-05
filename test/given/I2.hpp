@@ -12,8 +12,12 @@ class I2
 public:
     virtual ~I2();
 
-    virtual void f0() const = 0;
-    virtual void f1(int) = 0;
+    virtual void f0()const=0;
+
+    virtual void f1(
+        int
+    ) = 0;
+
     virtual void f2(double) = 0;
     virtual void f3(int, double) = 0;
     virtual void f4(int i, double d, const std::string& str) = 0;
