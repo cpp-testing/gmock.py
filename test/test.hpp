@@ -43,7 +43,7 @@ public:
     virtual int operator()() = 0;
     virtual void operator()(int, double d, boost::function<void(int, double)>, const boost::non_type<int, 1>&, const std::string& str) = 0;
     virtual double operator[](int) = 0;
-    virtual int* operator->() const = 0;
+    virtual void* operator->() const = 0;
 };
 
 namespace n2 {

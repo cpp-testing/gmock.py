@@ -42,8 +42,8 @@ public:
     MOCK_METHOD5(function_call_or_cast_operator, void(int, double, boost::function<void (int, double)>, const boost::non_type<int, 1> &, const std::string &));
     virtual double operator[](int arg0) { return array_subscript_operator(arg0); }
     MOCK_METHOD1(array_subscript_operator, double(int));
-    virtual int* operator->() const { return member_selection_operator(); }
-    MOCK_CONST_METHOD0(member_selection_operator, int*());
+    virtual void* operator->() const { return member_selection_operator(); }
+    MOCK_CONST_METHOD0(member_selection_operator, void*());
 };
 
 } // namespace n1
