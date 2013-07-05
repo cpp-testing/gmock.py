@@ -19,9 +19,7 @@ git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 ./gmock.py "gmock.conf" "test/mocks"  "namespace::class" file1.hpp file2.hpp
 ```
 will create directory 'test/mocks' and mocks within this directory for all interfaces (contains at least one pure virtual function)
-which will be within 'namespace::class' declaration:
- + test/mocks//file1Mock.hpp
- + test/mocks/file2Mock.hpp
+which will be within 'namespace::class' declaration
 
 ### Configuration file
 ```
