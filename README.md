@@ -6,7 +6,7 @@
 
 ### Download
 ```
-    git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
+git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 ```
 
 ### Usage
