@@ -44,7 +44,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "projects/externals/gmock.p
  + it's reliable (based on clang compiler)
  + it's fast (tested on project ~200 kloc -> generation of mocs takes 3-5s on common laptop)
  + output file might be easily adopted to the project via configuration file
- + easy integration with the project build system -> generate mocks files for each interface, limited to the project (for example via project namespace), from given files
+ + easy integration with the project build system -> generate mocks files for each interface from given files limited to the project (for example via project namespace)
  + generate pretty output (one mock per file)
  + easy to extend (~200 lines of code)
  + handle c++ operators
