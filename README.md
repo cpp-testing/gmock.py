@@ -46,7 +46,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
  + output file might be easily adopted to the project via configuration file
  + easy integration with the project build system -> generate mocks files for each interface from given files limited to the project (for example via project namespace)
  + generate pretty output (one mock per file)
- + easy to extend (~200 lines of code)
+ + easy to extend (~300 lines of code)
  + handle c++ operators
 
 ```cpp
