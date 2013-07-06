@@ -232,9 +232,9 @@ def main(args):
         )
 
     parser = OptionParser(usage="usage: %prog [options] files...")
-    parser.add_option("-c", "--config", dest="config", default="gmock.conf", help="config FILE", metavar="FILE")
-    parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks", metavar="DIR")
-    parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration", metavar="LIMIT")
+    parser.add_option("-c", "--config", dest="config", default="gmock.conf", help="config FILE (default='gmock.conf')", metavar="FILE")
+    parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks (default='.')", metavar="DIR")
+    parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration (default='')", metavar="LIMIT")
     (options, args) = parser.parse_args(args)
 
     if len(args) == 1:

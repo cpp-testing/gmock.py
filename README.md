@@ -15,9 +15,9 @@ Usage: gmock.py [options] files...
 
 Options:
   -h, --help                show this help message and exit
-  -c FILE, --config=FILE    config FILE
-  -d DIR, --dir=DIR         dir for generated mocks
-  -l LIMIT, --limit=LIMIT   limit to interfaces within declaration
+  -c FILE, --config=FILE    config FILE (default='gmock.conf')
+  -d DIR, --dir=DIR         dir for generated mocks (default='.')
+  -l LIMIT, --limit=LIMIT   limit to interfaces within declaration (default='')
 ```
 
 ### Example
