@@ -10,7 +10,7 @@ git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 ```
 
 ### Usage
-```
+```sh
 Usage: gmock.py [options] files...
 
 Options:
