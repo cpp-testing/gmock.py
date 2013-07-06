@@ -192,7 +192,9 @@ class mock_generator:
             'hpp' : self.mock_file_hpp % { 'interface' : interface },
             'cpp' : self.mock_file_cpp % { 'interface' : interface },
         }
-        with open(self.path + "/" + mock_file[file_type], 'w') as file:
+        path = self.path + "/" + mock_file[file_type]
+        not os.path.exists(os.path.dirname(path)) and os.makedirs(os.path.dirname(path))
+        with open(path, 'w') as file:
             file.write(file_template_type % {
                 'mock_file_hpp' : mock_file['hpp'],
                 'mock_file_cpp' : mock_file['cpp'],
