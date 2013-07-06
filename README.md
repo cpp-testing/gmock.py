@@ -34,7 +34,7 @@ which will be within 'namespace::class' declaration
 
 ### Integration with the build system
 ```sh
-find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py"  \
+find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py"   \
     -c "project/conf/gmock.conf"                                                    \
     -d "project/generated/mocks"                                                    \
     -l "Project"
