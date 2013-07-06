@@ -22,9 +22,14 @@ Options:
 
 ### Example
 ```
+./gmock.py file.hpp
+```
+will create mocks files in current directory for all interfaces
+
+```
 ./gmock.py -c "gmock.conf" -d "test/mocks" -l "namespace::class" file1.hpp file2.hpp
 ```
-will create directory 'test/mocks' and mocks within this directory for all interfaces (contains at least one pure virtual function)
+will create directory 'test/mocks' and mocks files within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
 
 ### Integration with build system
