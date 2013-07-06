@@ -21,19 +21,19 @@ Options:
 ```
 
 ### Example
-```
+```sh
 ./gmock.py file.hpp
 ```
 will create mocks files in current directory for all interfaces
 
-```
+```sh
 ./gmock.py -c "gmock.conf" -d "test/mocks" -l "namespace::class" file1.hpp file2.hpp
 ```
 will create directory 'test/mocks' and mocks files within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
 
 ### Integration with build system
-```
+```sh
 find project -iname "*.h" -or -iname "*.hpp" | xargs\
 "projects/externals/gmock.py" -c "project/conf/gmock.conf" -d "project/generated/mocks" -l "Project"
 ```
@@ -47,11 +47,11 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs\
  + easy to extend (~200 lines of code)
  + handle c++ operators
 
-```
+```cpp
     virtual int operator()(int, double) = 0;
 ```
 
-```
+```cpp
     virtual int operator()(int arg0, double arg1) { return call_operator(arg0, arg1); }
     MOCK_METHOD2(call_operator, int(int, double));
 ```
