@@ -117,15 +117,9 @@ public:
     MOCK_CONST_METHOD1(f6, boost::shared_ptr<int>(const boost::shared_ptr<int> &));
     MOCK_CONST_METHOD0(f7, const int&());
     MOCK_METHOD0(f8, boost::function<void(int)>());
-    MOCK_CONST_METHOD2(f9, boost::non_type<int,0>(const boost::non_type<int, 1> &, const boost::non_type<int, 2> &));
+    MOCK_CONST_METHOD1(f9, boost::non_type<int,0>(const boost::non_type<int, 1> &));
     MOCK_METHOD0(f10, const int*const ());
     MOCK_METHOD0(f11, const void());
-    MOCK_METHOD0(f12, const void());
-    MOCK_METHOD0(f13, const void());
-    MOCK_METHOD0(f14, const void());
-    MOCK_METHOD0(f15,  const void());
-    MOCK_METHOD0(f16, const  void());
-    MOCK_METHOD0(f17, const  void());
     virtual int operator()() { return function_call_or_cast_operator(); }
     MOCK_METHOD0(function_call_or_cast_operator, int());
 };
