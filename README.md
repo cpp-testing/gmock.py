@@ -32,7 +32,7 @@ will create mocks files in current directory for all interfaces
 will create directory 'test/mocks' and mocks files within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
 
-### Integration with build system
+### Integration with the build system
 ```sh
 find project -iname "*.h" -or -iname "*.hpp" | xargs "projects/externals/gmock.py"  \
     -c "project/conf/gmock.conf"                                                    \
