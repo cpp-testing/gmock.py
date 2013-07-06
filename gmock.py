@@ -251,8 +251,6 @@ def main(args):
 
     config = {}
     execfile(options.config, config)
-    not os.path.exists(options.path) and os.makedirs(options.path)
-
     return mock_generator(
         cursor = parse(files = args).cursor,
         decl = options.decl,

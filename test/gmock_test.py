@@ -38,7 +38,7 @@ class TestGMock(unittest.TestCase):
 
     def test_gmock_one_file_no_output(self):
         self.assertEqual(0, gmock.main(['./gmock.py', '-c' '../gmock.conf', '-d', self.generated_dir, '-l', 'n1', 'given/I1.hpp']))
-        self.assertEqual(0, len([name for name in os.listdir(self.generated_dir)]))
+        self.assertFalse(os.path.exists(self.generated_dir))
 
     def test_gmock_one_file_with_output(self):
         self.assertEqual(0, gmock.main(['./gmock.py', '-c', '../gmock.conf', '-d', self.generated_dir, '-l', 'n1', 'given/I2.hpp']))
