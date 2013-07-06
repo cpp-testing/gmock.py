@@ -186,12 +186,12 @@ class mock_generator:
         else:
             [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
 
-    def __init__(self, cursor, decl, path, mock_file, file_template):
+    def __init__(self, cursor, decl, path, mock_file_hpp, file_template_hpp):
         self.cursor = cursor
         self.decl = decl
         self.path = path
-        self.mock_file = mock_file
-        self.file_template = file_template
+        self.mock_file_hpp = mock_file_hpp
+        self.file_template_hpp = file_template_hpp
 
     def generate(self):
         mock_methods = {}
@@ -199,25 +199,23 @@ class mock_generator:
         for decl, mock_methods in mock_methods.iteritems():
             if len(mock_methods) > 0:
                 interface = decl.split("::")[-1]
-                mock_file = self.mock_file % { 'interface' : interface }
-                with open(self.path + "/" + mock_file, 'w') as file:
-                    file.write(self.file_template % {
-                        'mock_file' : mock_file,
-                        'guard' : mock_file.replace('.', '_').upper(),
-                        'dir' : os.path.dirname(mock_methods[0]),
-                        'file' : os.path.basename(mock_methods[0]),
-                        'namespaces_begin' : self.__pretty_namespaces_begin(decl),
-                        'interface' : interface,
-                        'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
-                        'namespaces_end' : self.__pretty_namespaces_end(decl)
-                    })
+
+                if self.mock_file_hpp != None:
+                    mock_file_hpp = self.mock_file_hpp % { 'interface' : interface }
+                    with open(self.path + "/" + mock_file_hpp, 'w') as file:
+                        file.write(self.file_template_hpp % {
+                            'mock_file_hpp' : mock_file_hpp,
+                            'guard' : mock_file_hpp.replace('.', '_').upper(),
+                            'dir' : os.path.dirname(mock_methods[0]),
+                            'file' : os.path.basename(mock_methods[0]),
+                            'namespaces_begin' : self.__pretty_namespaces_begin(decl),
+                            'interface' : interface,
+                            'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
+                            'namespaces_end' : self.__pretty_namespaces_end(decl)
+                        })
         return 0
 
 def main(args):
-    def create_dir(path):
-        if not os.path.exists(path):
-            os.makedirs(path)
-
     def parse(files):
         def generate_includes(includes):
             result = []
@@ -242,13 +240,14 @@ def main(args):
 
     config = {}
     execfile(options.config, config)
-    create_dir(options.path)
+    not os.path.exists(options.path) and os.makedirs(options.path)
+
     return mock_generator(
         cursor = parse(files = args).cursor,
         decl = options.decl,
         path = options.path,
-        mock_file = config['mock_file'],
-        file_template = config['file_template']
+        mock_file_hpp = config['mock_file_hpp'],
+        file_template_hpp = config['file_template_hpp']
     ).generate()
 
 if __name__ == "__main__":
