@@ -66,7 +66,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
 # guard: header guard
 # interface: interface class
 # mock_methods: generated gmock methods
-# generated_dir: generated dir
+# generated_dir: generated directory
 # mock_file_hpp: mock header file 
 # mock_file_cpp: mock source file 
 
