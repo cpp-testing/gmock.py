@@ -56,14 +56,16 @@ class TestGMock(unittest.TestCase):
 
     def test_gmock_custom_conf(self):
         self.assertEqual(0, gmock.main(['./gmock.py', '-c', 'test.conf', '-d', self.generated_dir, '-l', 'n1', 'given/I2.hpp']))
-        self.assertEqual(1, len([name for name in os.listdir(self.generated_dir)]))
+        self.assertEqual(2, len([name for name in os.listdir(self.generated_dir)]))
         self.assertTrue('I2_mock.hpp' in os.listdir(self.generated_dir))
+        self.assertTrue('I2_mock.cpp' in os.listdir(self.generated_dir))
         self.assertMocks();
 
     def test_gmock_long_args(self):
         self.assertEqual(0, gmock.main(['./gmock.py', '--config=test.conf', '--dir='+self.generated_dir, '--limit=n1', 'given/I2.hpp']))
-        self.assertEqual(1, len([name for name in os.listdir(self.generated_dir)]))
+        self.assertEqual(2, len([name for name in os.listdir(self.generated_dir)]))
         self.assertTrue('I2_mock.hpp' in os.listdir(self.generated_dir))
+        self.assertTrue('I2_mock.cpp' in os.listdir(self.generated_dir))
         self.assertMocks();
 
 if __name__ == '__main__':

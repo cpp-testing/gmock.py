@@ -186,33 +186,42 @@ class mock_generator:
         else:
             [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
 
-    def __init__(self, cursor, decl, path, mock_file_hpp, file_template_hpp):
+    def __generate_file(self, decl, mock_methods, file_type, file_template_type):
+        interface = decl.split("::")[-1]
+        mock_file = {
+            'hpp' : self.mock_file_hpp % { 'interface' : interface },
+            'cpp' : self.mock_file_cpp % { 'interface' : interface },
+        }
+        with open(self.path + "/" + mock_file[file_type], 'w') as file:
+            file.write(file_template_type % {
+                'mock_file_hpp' : mock_file['hpp'],
+                'mock_file_cpp' : mock_file['cpp'],
+                'generated_dir' : self.path,
+                'guard' : mock_file[file_type].replace('.', '_').upper(),
+                'dir' : os.path.dirname(mock_methods[0]),
+                'file' : os.path.basename(mock_methods[0]),
+                'namespaces_begin' : self.__pretty_namespaces_begin(decl),
+                'interface' : interface,
+                'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
+                'namespaces_end' : self.__pretty_namespaces_end(decl)
+            })
+
+    def __init__(self, cursor, decl, path, mock_file_hpp, file_template_hpp, mock_file_cpp, file_template_cpp):
         self.cursor = cursor
         self.decl = decl
         self.path = path
         self.mock_file_hpp = mock_file_hpp
         self.file_template_hpp = file_template_hpp
+        self.mock_file_cpp = mock_file_cpp
+        self.file_template_cpp = file_template_cpp
 
     def generate(self):
         mock_methods = {}
         self.__get_mock_methods(self.cursor, mock_methods)
         for decl, mock_methods in mock_methods.iteritems():
             if len(mock_methods) > 0:
-                interface = decl.split("::")[-1]
-
-                if self.mock_file_hpp != None:
-                    mock_file_hpp = self.mock_file_hpp % { 'interface' : interface }
-                    with open(self.path + "/" + mock_file_hpp, 'w') as file:
-                        file.write(self.file_template_hpp % {
-                            'mock_file_hpp' : mock_file_hpp,
-                            'guard' : mock_file_hpp.replace('.', '_').upper(),
-                            'dir' : os.path.dirname(mock_methods[0]),
-                            'file' : os.path.basename(mock_methods[0]),
-                            'namespaces_begin' : self.__pretty_namespaces_begin(decl),
-                            'interface' : interface,
-                            'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
-                            'namespaces_end' : self.__pretty_namespaces_end(decl)
-                        })
+                self.file_template_hpp != None and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
+                self.file_template_cpp != None and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
         return 0
 
 def main(args):
@@ -247,7 +256,9 @@ def main(args):
         decl = options.decl,
         path = options.path,
         mock_file_hpp = config['mock_file_hpp'],
-        file_template_hpp = config['file_template_hpp']
+        file_template_hpp = config['file_template_hpp'],
+        mock_file_cpp = config['mock_file_cpp'],
+        file_template_cpp = config['file_template_cpp']
     ).generate()
 
 if __name__ == "__main__":

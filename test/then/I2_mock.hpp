@@ -9,7 +9,8 @@ namespace n1 {
 class I2_mock : public I2
 {
 public:
-    virtual ~I2_mock() { }
+    I2_mock();
+    virtual ~I2_mock();
 
     MOCK_CONST_METHOD0(f0, void());
     MOCK_METHOD1(f1, void(int));
