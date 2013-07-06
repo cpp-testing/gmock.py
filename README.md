@@ -97,7 +97,7 @@ public:
 """
 
 mock_file_cpp = ""
-file_template_cpp = None
+file_template_cpp = ""
 
 ```
 

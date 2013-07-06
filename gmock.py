@@ -220,8 +220,8 @@ class mock_generator:
         self.__get_mock_methods(self.cursor, mock_methods)
         for decl, mock_methods in mock_methods.iteritems():
             if len(mock_methods) > 0:
-                self.file_template_hpp != None and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
-                self.file_template_cpp != None and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
+                self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
+                self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
         return 0
 
 def main(args):
