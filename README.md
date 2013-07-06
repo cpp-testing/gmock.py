@@ -57,7 +57,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs\
 ```
 
 ### Configuration file
-```cpp
+```python
 #vars:
 # file: interface file name
 # dir: interface directory
