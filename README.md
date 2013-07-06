@@ -60,7 +60,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
 
 ### Configuration file
 ```python
-#vars:
+#possible variables:
 # file: interface file name
 # dir: interface directory
 # guard: header guard
