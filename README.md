@@ -127,5 +127,6 @@ public:
 } // namespace n1
 
 #endif // I2MOCK_HPP
+
 ```
 
