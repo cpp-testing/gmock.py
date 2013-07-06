@@ -2,6 +2,7 @@
 
 import os
 import sys
+from optparse import OptionParser
 from clang.cindex import Index
 from clang.cindex import TranslationUnit
 from clang.cindex import Cursor
@@ -230,17 +231,22 @@ def main(args):
           , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
         )
 
-    if len(args) < 4:
-        print("usage: " + args[0] + " <config_file> <dir_for_generated_mocks> <limit_to_interfaces_within_decl> files...")
-        return -1
+    parser = OptionParser(usage="usage: %prog [options] files...")
+    parser.add_option("-c", "--config", dest="config", default="gmock.conf", help="config FILE", metavar="FILE")
+    parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks", metavar="DIR")
+    parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration", metavar="LIMIT")
+    (options, args) = parser.parse_args(args)
+
+    if len(args) == 1:
+        parser.error("at least one file has to be given")
 
     config = {}
-    execfile(args[1], config)
-    create_dir(path = args[2])
+    execfile(options.config, config)
+    create_dir(options.path)
     return mock_generator(
-        cursor = parse(files = args[4:]).cursor,
-        decl = args[3],
-        path = args[2],
+        cursor = parse(files = args).cursor,
+        decl = options.decl,
+        path = options.path,
         mock_file = config['mock_file'],
         file_template = config['file_template']
     ).generate()

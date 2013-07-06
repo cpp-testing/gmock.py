@@ -11,12 +11,18 @@ git clone --recursive git@github.com:krzysztof-jusiak/gmock.git
 
 ### Usage
 ```
-./gmock.py <config_file> <dir_for_generated_mocks> <limit_to_interfaces_within_decl> files...
+Usage: gmock.py [options] files...
+
+Options:
+  -h, --help                show this help message and exit
+  -c FILE, --config=FILE    config FILE
+  -d DIR, --dir=DIR         dir for generated mocks
+  -l LIMIT, --limit=LIMIT   limit to interfaces within declaration
 ```
 
 ### Example
 ```
-./gmock.py "gmock.conf" "test/mocks"  "namespace::class" file1.hpp file2.hpp
+./gmock.py -c "gmock.conf" -d "test/mocks" -l "namespace::class" file1.hpp file2.hpp
 ```
 will create directory 'test/mocks' and mocks within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
@@ -24,12 +30,12 @@ which will be within 'namespace::class' declaration
 ### Integration with build system
 ```
 find project -iname "*.h" -or -iname "*.hpp" |
-    xargs gmock.py "project/conf/gmock.conf" "project/generated/mocks" "Project"
+    xargs gmock.py -c "project/conf/gmock.conf" -d "project/generated/mocks" -l "Project"
 ```
 
 ### Features
  + it's reliable (based on clang compiler)
- + it's fast (tested on project ~200 kloc -> generation of mocs took 3-5 seconds on common laptop)
+ + it's fast (tested on project ~200 kloc -> generation of mocs takes 3-5s on common laptop)
  + output file might be easily adopted to the project via configuration file
  + easy integration with the project build system -> generate mocks files for each interface, limited to the project (for example via project namespace), from given files
  + generate pretty output (one mock per file)
