@@ -35,7 +35,7 @@ which will be within 'namespace::class' declaration
 ```sh
 ./gmock.py -d "test/mocks" file1.hpp file2.hpp -- -D LINUX -Iproject/externals
 ```
-'--' separates arguments between gmock.py and compiler options
+'--' separates arguments between script and compiler
 
 ### Integration with the build system
 ```sh
