@@ -31,6 +31,14 @@ public:
     virtual Enum f2()const = 0; // comment
 };
 
+#ifdef CLASS_I5
+class I5
+{
+public:
+    virtual void f0(void) = 0;
+};
+#endif
+
 } // namespace n1
 
 #endif

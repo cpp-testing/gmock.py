@@ -54,6 +54,14 @@ class TestGMock(unittest.TestCase):
         self.assertTrue('I4Mock.hpp' in os.listdir(self.generated_dir))
         self.assertMocks();
 
+    def test_gmock_clang_args(self):
+        self.assertEqual(0, gmock.main(['../gmock.py', '-d', self.generated_dir, '-l', 'n1', 'given/I3I4.hpp', '--', '-D CLASS_I5']))
+        self.assertEqual(3, len([name for name in os.listdir(self.generated_dir)]))
+        self.assertTrue('I3Mock.hpp' in os.listdir(self.generated_dir))
+        self.assertTrue('I4Mock.hpp' in os.listdir(self.generated_dir))
+        self.assertTrue('I5Mock.hpp' in os.listdir(self.generated_dir))
+        self.assertMocks();
+
     def test_gmock_custom_conf(self):
         self.assertEqual(0, gmock.main(['../gmock.py', '-c', 'test.conf', '-d', self.generated_dir, '-l', 'n1', 'given/I2.hpp']))
         self.assertEqual(2, len([name for name in os.listdir(self.generated_dir)]))

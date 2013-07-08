@@ -227,7 +227,7 @@ class mock_generator:
         return 0
 
 def main(args):
-    def parse(files):
+    def parse(files, args):
         def generate_includes(includes):
             result = []
             for include in includes:
@@ -236,12 +236,20 @@ def main(args):
 
         return Index.create(excludeDecls = True).parse(
             path = "~.hpp"
+          , args = args
           , unsaved_files = [("~.hpp", generate_includes(files))]
           , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
         )
 
+    clang_args = None
+    args_split = [i for i, arg in enumerate(args) if arg == '--']
+    if args_split:
+        args, clang_args = args[:args_split[0]], args[args_split[0] + 1:]
+
+    default_config = os.path.dirname(args[0]) + "/gmock.conf"
+
     parser = OptionParser(usage="usage: %prog [options] files...")
-    parser.add_option("-c", "--config", dest="config", default=os.path.dirname(args[0]) + "/gmock.conf", help="config FILE (default='gmock.conf')", metavar="FILE")
+    parser.add_option("-c", "--config", dest="config", default=default_config, help="config FILE (default='gmock.conf')", metavar="FILE")
     parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks (default='.')", metavar="DIR")
     parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration (default='')", metavar="LIMIT")
     (options, args) = parser.parse_args(args)
@@ -252,7 +260,7 @@ def main(args):
     config = {}
     execfile(options.config, config)
     return mock_generator(
-        cursor = parse(files = args[1:]).cursor,
+        cursor = parse(files = args[1:], args = clang_args).cursor,
         decl = options.decl,
         path = options.path,
         mock_file_hpp = config['mock_file_hpp'],

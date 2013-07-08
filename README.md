@@ -32,11 +32,16 @@ will create mocks files in current directory for all interfaces
 will create directory 'test/mocks' and mocks files within this directory for all interfaces (contains at least one pure virtual function)
 which will be within 'namespace::class' declaration
 
+```sh
+./gmock.py -d "test/mocks" file1.hpp file2.hpp -- -D LINUX -Iproject/externals
+```
+'--' separates arguments between gmock.py and compiler options
+
 ### Integration with the build system
 ```sh
 find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py"   \
     -c "project/conf/gmock.conf"                                                    \
-    -d "project/generated/mocks"                                                    \
+    -d "project/test/mocks"                                                         \
     -l "Project"
 ```
 
@@ -68,8 +73,8 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
 # interface: interface class
 # mock_methods: generated gmock methods
 # generated_dir: generated directory
-# mock_file_hpp: mock header file 
-# mock_file_cpp: mock source file 
+# mock_file_hpp: mock header file
+# mock_file_cpp: mock source file
 
 mock_file_hpp = "%(interface)sMock.hpp"
 
