@@ -241,7 +241,7 @@ def main(args):
         )
 
     parser = OptionParser(usage="usage: %prog [options] files...")
-    parser.add_option("-c", "--config", dest="config", default="gmock.conf", help="config FILE (default='gmock.conf')", metavar="FILE")
+    parser.add_option("-c", "--config", dest="config", default=os.path.dirname(args[0]) + "/gmock.conf", help="config FILE (default='gmock.conf')", metavar="FILE")
     parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks (default='.')", metavar="DIR")
     parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration (default='')", metavar="LIMIT")
     (options, args) = parser.parse_args(args)
@@ -252,7 +252,7 @@ def main(args):
     config = {}
     execfile(options.config, config)
     return mock_generator(
-        cursor = parse(files = args).cursor,
+        cursor = parse(files = args[1:]).cursor,
         decl = options.decl,
         path = options.path,
         mock_file_hpp = config['mock_file_hpp'],
