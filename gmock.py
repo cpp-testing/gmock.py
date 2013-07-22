@@ -174,11 +174,11 @@ class mock_generator:
         return ''.join(result)
 
     def __get_mock_methods(self, node, mock_methods, class_decl = ""):
-        name = str(node.displayname, "utf-8")
+        name = str(node.displayname, self.encode)
         if node.kind == CursorKind.CXX_METHOD:
-            tokens = [str(token.spelling, "utf-8") for token in node.get_tokens()]
-            spelling = str(node.spelling, "utf-8")
-            file = str(node.location.file.name, "utf-8")
+            tokens = [str(token.spelling, self.encode) for token in node.get_tokens()]
+            spelling = str(node.spelling, self.encode)
+            file = str(node.location.file.name, self.encode)
             if self.__is_pure_virtual_function(tokens):
                 mock_methods.setdefault(class_decl, [file]).append(
                     mock_method(
@@ -218,14 +218,30 @@ class mock_generator:
                 'namespaces_end' : self.__pretty_namespaces_end(decl)
             })
 
-    def __init__(self, cursor, decl, path, mock_file_hpp, file_template_hpp, mock_file_cpp, file_template_cpp):
-        self.cursor = cursor
+    def __parse(self, files, args):
+        tmp_file = b"~.hpp"
+        def generate_includes(includes):
+            result = []
+            for include in includes:
+                result.append("#include \"%(include)s\"\n" % { 'include' : include })
+            return ''.join(result)
+
+        return Index.create(excludeDecls = True).parse(
+            path = tmp_file
+          , args = args
+          , unsaved_files = [(tmp_file, bytes(generate_includes(files), self.encode))]
+          , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
+        )
+
+    def __init__(self, files, args, decl, path, mock_file_hpp, file_template_hpp, mock_file_cpp, file_template_cpp, encode = "utf-8"):
         self.decl = decl
         self.path = path
         self.mock_file_hpp = mock_file_hpp
         self.file_template_hpp = file_template_hpp
         self.mock_file_cpp = mock_file_cpp
         self.file_template_cpp = file_template_cpp
+        self.encode = encode
+        self.cursor = self.__parse(files, args).cursor
 
     def generate(self):
         mock_methods = {}
@@ -235,20 +251,6 @@ class mock_generator:
                 self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
                 self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
         return 0
-
-def parse(files, args):
-    def generate_includes(includes):
-        result = []
-        for include in includes:
-            result.append("#include \"%(include)s\"\n" % { 'include' : include })
-        return ''.join(result)
-
-    return Index.create(excludeDecls = True).parse(
-        path = b"~.hpp"
-      , args = args
-      , unsaved_files = [(b"~.hpp", bytes(generate_includes(files), "utf-8"))]
-      , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
-    )
 
 def main(args):
     clang_args = None
@@ -272,7 +274,8 @@ def main(args):
         exec(file.read(), config)
 
     return mock_generator(
-        cursor = parse(files = args[1:], args = clang_args).cursor,
+        files = args[1:],
+        args = clang_args,
         decl = options.decl,
         path = options.path,
         mock_file_hpp = config['mock_file_hpp'],
