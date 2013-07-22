@@ -1,7 +1,7 @@
 **Google Mock** mocks generator based on libclang
 
 ### Requirements
- + [python](http://www.python.org) (tested with 2.7 and 3.2)
+ + [python](http://www.python.org) (tested with 2.7 and 3.3)
  + [libclang](http://clang.llvm.org) (tested with 3.2)
 
 ### Download

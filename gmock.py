@@ -244,9 +244,9 @@ def parse(files, args):
         return ''.join(result)
 
     return Index.create(excludeDecls = True).parse(
-        path = b'~.hpp'
+        path = b"~.hpp"
       , args = args
-      , unsaved_files = [(b'~.hpp', bytes(generate_includes(files), "utf-8"))]
+      , unsaved_files = [(b"~.hpp", bytes(generate_includes(files), "utf-8"))]
       , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
     )
 
