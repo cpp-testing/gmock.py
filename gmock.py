@@ -8,6 +8,14 @@ from clang.cindex import TranslationUnit
 from clang.cindex import Cursor
 from clang.cindex import CursorKind
 
+if sys.version_info < (3, 0):
+    import __builtin__
+    def str(object, unused = None):
+        return __builtin__.str(object)
+
+    def bytes(object, unused = None):
+        return __builtin__.bytes(object)
+
 class mock_method:
     operators = {
         'operator,'   : 'comma_operator',
@@ -115,31 +123,31 @@ class mock_method:
 class mock_generator:
     def __is_const_function(self, tokens):
         for token in reversed(tokens):
-            if token.spelling == 'const':
+            if token == 'const':
                 return True
-            elif token.spelling == ')':
+            elif token == ')':
                 return False
         return False
 
     def __is_virtual_function(self, tokens):
-        return 'virtual' in [token.spelling for token in tokens]
+        return 'virtual' in [token for token in tokens]
 
     def __is_pure_virtual_function(self, tokens):
         return len(tokens) >= 3 and                     \
                self.__is_virtual_function(tokens) and   \
-               tokens[-3].spelling == '=' and           \
-               tokens[-2].spelling == '0' and           \
-               tokens[-1].spelling == ';'
+               tokens[-3] == '=' and          \
+               tokens[-2] == '0' and          \
+               tokens[-1] == ';'
 
     def __get_result_type(self, tokens, name):
         assert(self.__is_pure_virtual_function(tokens))
         result_type = []
         for token in tokens:
-            if token.spelling in [name, 'operator']:
+            if token in [name, 'operator']:
                 break
-            if token.spelling not in ['virtual', 'inline', 'volatile']:
-                result_type.append(token.spelling)
-            if token.spelling in ['const', 'volatile']:
+            if token not in ['virtual', 'inline', 'volatile']:
+                result_type.append(token)
+            if token in ['const', 'volatile']:
                 result_type.append(' ')
         return ''.join(result_type)
 
@@ -166,21 +174,23 @@ class mock_generator:
         return ''.join(result)
 
     def __get_mock_methods(self, node, mock_methods, class_decl = ""):
+        name = str(node.displayname, "utf-8")
         if node.kind == CursorKind.CXX_METHOD:
-            tokens = list(node.get_tokens())
+            tokens = [str(token.spelling, "utf-8") for token in node.get_tokens()]
+            spelling = str(node.spelling, "utf-8")
+            file = str(node.location.file.name, "utf-8")
             if self.__is_pure_virtual_function(tokens):
-                mock_methods.setdefault(class_decl, [node.location.file.name]).append(
+                mock_methods.setdefault(class_decl, [file]).append(
                     mock_method(
-                         self.__get_result_type(tokens, node.spelling),
-                         node.spelling,
+                         self.__get_result_type(tokens, spelling),
+                         spelling,
                          self.__is_const_function(tokens),
                          len(list(node.get_arguments())),
-                         node.displayname[len(node.spelling) + 1 : -1]
+                         name[len(node.spelling) + 1 : -1]
                     )
                 )
         elif node.kind in [CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
-            class_decl = class_decl == "" and node.displayname \
-                or class_decl + (node.displayname == "" and "" or "::") + node.displayname
+            class_decl = class_decl == "" and name or class_decl + (name == "" and "" or "::") + name
             if class_decl.startswith(self.decl):
                 [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
         else:
@@ -220,27 +230,27 @@ class mock_generator:
     def generate(self):
         mock_methods = {}
         self.__get_mock_methods(self.cursor, mock_methods)
-        for decl, mock_methods in mock_methods.iteritems():
+        for decl, mock_methods in mock_methods.items():
             if len(mock_methods) > 0:
                 self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
                 self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
         return 0
 
+def parse(files, args):
+    def generate_includes(includes):
+        result = []
+        for include in includes:
+            result.append("#include \"%(include)s\"\n" % { 'include' : include })
+        return ''.join(result)
+
+    return Index.create(excludeDecls = True).parse(
+        path = b'~.hpp'
+      , args = args
+      , unsaved_files = [(b'~.hpp', bytes(generate_includes(files), "utf-8"))]
+      , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
+    )
+
 def main(args):
-    def parse(files, args):
-        def generate_includes(includes):
-            result = []
-            for include in includes:
-                result.append("#include \"%(include)s\"\n" % { 'include' : include })
-            return ''.join(result)
-
-        return Index.create(excludeDecls = True).parse(
-            path = "~.hpp"
-          , args = args
-          , unsaved_files = [("~.hpp", generate_includes(files))]
-          , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
-        )
-
     clang_args = None
     args_split = [i for i, arg in enumerate(args) if arg == '--']
     if args_split:
@@ -258,7 +268,9 @@ def main(args):
         parser.error("at least one file has to be given")
 
     config = {}
-    execfile(options.config, config)
+    with open(options.config, 'r') as file:
+        exec(file.read(), config)
+
     return mock_generator(
         cursor = parse(files = args[1:], args = clang_args).cursor,
         decl = options.decl,
