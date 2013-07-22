@@ -135,8 +135,8 @@ class mock_generator:
     def __is_pure_virtual_function(self, tokens):
         return len(tokens) >= 3 and                     \
                self.__is_virtual_function(tokens) and   \
-               tokens[-3] == '=' and          \
-               tokens[-2] == '0' and          \
+               tokens[-3] == '=' and                    \
+               tokens[-2] == '0' and                    \
                tokens[-1] == ';'
 
     def __get_result_type(self, tokens, name):
