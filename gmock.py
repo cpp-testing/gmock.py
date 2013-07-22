@@ -248,13 +248,13 @@ class mock_generator:
         self.__get_mock_methods(self.cursor, mock_methods)
         for decl, mock_methods in mock_methods.items():
             if len(mock_methods) > 0:
-                self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, 'hpp', self.file_template_hpp)
-                self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, 'cpp', self.file_template_cpp)
+                self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, "hpp", self.file_template_hpp)
+                self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, "cpp", self.file_template_cpp)
         return 0
 
 def main(args):
     clang_args = None
-    args_split = [i for i, arg in enumerate(args) if arg == '--']
+    args_split = [i for i, arg in enumerate(args) if arg == "--"]
     if args_split:
         args, clang_args = args[:args_split[0]], args[args_split[0] + 1:]
 
