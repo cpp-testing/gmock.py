@@ -33,7 +33,7 @@ will create directory 'test/mocks' and mocks files within this directory for all
 which will be within 'namespace::class' declaration
 
 ```sh
-./gmock.py -d "test/mocks" file1.hpp file2.hpp -- -D LINUX -Iproject/externals
+./gmock.py -d "test/mocks" file1.hpp file2.hpp -- -D PROJECT -Iproject/include
 ```
 '--' separates arguments between script and compiler
 
@@ -42,7 +42,11 @@ which will be within 'namespace::class' declaration
 find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py"   \
     -c "project/conf/gmock.conf"                                                    \
     -d "project/test/mocks"                                                         \
-    -l "Project"
+    -l "Project"                                                                    \
+    --                                                                              \
+    -D PROJECT                                                                      \
+    -Iproject/include                                                               \
+
 ```
 
 ### Features
