@@ -46,7 +46,6 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
     --                                                                              \
     -D PROJECT                                                                      \
     -Iproject/include                                                               \
-
 ```
 
 ### Features
