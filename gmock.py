@@ -189,7 +189,7 @@ class mock_generator:
                          name[len(node.spelling) + 1 : -1]
                     )
                 )
-        elif node.kind in [CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
+        elif node.kind in [CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
             class_decl = class_decl == "" and name or class_decl + (name == "" and "" or "::") + name
             if class_decl.startswith(self.decl):
                 [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
