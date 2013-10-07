@@ -8,7 +8,6 @@
 #include "./given/I3I4.hpp"
 
 namespace n1 {
-namespace  {
 
 class I3Mock : public I3
 {
@@ -17,7 +16,6 @@ public:
 };
 
 } // namespace n1
-} // namespace 
 
 #endif // I3MOCK_HPP
 

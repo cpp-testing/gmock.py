@@ -58,10 +58,11 @@ class mock_method:
         'operator~'   : 'complement_operator'
     }
 
-    def __init__(self, result_type, name, is_const, args_size, args, args_prefix = 'arg'):
+    def __init__(self, result_type, name, is_const, is_template, args_size, args, args_prefix = 'arg'):
         self.result_type = result_type
         self.name = name
         self.is_const = is_const
+        self.is_template = is_template
         self.args_size = args_size
         self.args = args
         self.args_prefix = args_prefix
@@ -110,9 +111,10 @@ class mock_method:
 
         mock.append(gap)
         mock.append(
-            "MOCK_%(const)sMETHOD%(nr)s(%(name)s, %(result_type)s(%(args)s));" % {
+            "MOCK_%(const)sMETHOD%(nr)s%(template)s(%(name)s, %(result_type)s(%(args)s));" % {
             'const' : self.is_const and 'CONST_' or '',
             'nr' : self.args_size,
+            'template' : self.is_template and '_T' or '',
             'name' : name,
             'result_type' : self.result_type,
             'args' : self.args
@@ -121,6 +123,9 @@ class mock_method:
         return ''.join(mock)
 
 class mock_generator:
+    def __is_template_class(self, decl):
+        return '<' in decl
+
     def __is_const_function(self, tokens):
         for token in reversed(tokens):
             if token == 'const':
@@ -151,6 +156,36 @@ class mock_generator:
                 result_type.append(' ')
         return ''.join(result_type)
 
+    def __pretty_template(self, decl):
+        first = False
+        typename = []
+        typenames = []
+        for token in decl.split("::")[-1]:
+            if token == '<':
+                first = True
+            elif token == ',':
+                typenames.append(''.join(typename))
+                typename = []
+            elif token == '>':
+                typenames.append(''.join(typename))
+                typename = []
+            elif token == ' ':
+                continue
+            elif first:
+                typename.append(token)
+
+        result = []
+        if len(typenames) > 0:
+            result.append("template<")
+            for i, t in enumerate(typenames):
+                i != 0 and result.append(", ")
+                result.append("typename ")
+                result.append(t)
+            result.append(">")
+            result.append("\n")
+
+        return ''.join(result)
+
     def __pretty_mock_methods(self, mock_methods):
         result = []
         for i, mock_method in enumerate(mock_methods):
@@ -173,31 +208,44 @@ class mock_generator:
             result.append("} // namespace " + namespace)
         return ''.join(result)
 
-    def __get_mock_methods(self, node, mock_methods, class_decl = ""):
+    def __get_interface(self, decl):
+        result = []
+        ignore = False
+        for token in decl.split("::")[-1]:
+            if token == '<':
+                ignore = True
+            if not ignore:
+                result.append(token)
+            if token == '>':
+                ignore = False
+        return ''.join(result)
+
+    def __get_mock_methods(self, node, mock_methods, decl = ""):
         name = str(node.displayname, self.encode)
         if node.kind == CursorKind.CXX_METHOD:
-            tokens = [str(token.spelling, self.encode) for token in node.get_tokens()]
             spelling = str(node.spelling, self.encode)
+            tokens = [str(token.spelling, self.encode) for token in node.get_tokens()]
             file = str(node.location.file.name, self.encode)
             if self.__is_pure_virtual_function(tokens):
-                mock_methods.setdefault(class_decl, [file]).append(
+                mock_methods.setdefault(decl, [file]).append(
                     mock_method(
                          self.__get_result_type(tokens, spelling),
                          spelling,
                          self.__is_const_function(tokens),
+                         self.__is_template_class(decl),
                          len(list(node.get_arguments())),
                          name[len(node.spelling) + 1 : -1]
                     )
                 )
-        elif node.kind in [CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
-            class_decl = class_decl == "" and name or class_decl + (name == "" and "" or "::") + name
-            if class_decl.startswith(self.decl):
-                [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
+        elif node.kind in [CursorKind.CLASS_TEMPLATE, CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
+            decl = decl == "" and name or decl + (name == "" and "" or "::") + name
+            if decl.startswith(self.decl):
+                [self.__get_mock_methods(c, mock_methods, decl) for c in node.get_children()]
         else:
-            [self.__get_mock_methods(c, mock_methods, class_decl) for c in node.get_children()]
+            [self.__get_mock_methods(c, mock_methods, decl) for c in node.get_children()]
 
     def __generate_file(self, decl, mock_methods, file_type, file_template_type):
-        interface = decl.split("::")[-1]
+        interface = self.__get_interface(decl)
         mock_file = {
             'hpp' : self.mock_file_hpp % { 'interface' : interface },
             'cpp' : self.mock_file_cpp % { 'interface' : interface },
@@ -214,6 +262,8 @@ class mock_generator:
                 'file' : os.path.basename(mock_methods[0]),
                 'namespaces_begin' : self.__pretty_namespaces_begin(decl),
                 'interface' : interface,
+                'template_interface' : decl.split("::")[-1],
+                'template' : self.__pretty_template(decl),
                 'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
                 'namespaces_end' : self.__pretty_namespaces_end(decl)
             })

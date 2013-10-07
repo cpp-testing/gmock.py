@@ -2,7 +2,6 @@
 #define I3I4_HPP
 
 namespace n1 {
-namespace {
 
 struct I3
 {
@@ -15,8 +14,6 @@ struct I3
 private:
     virtual void f1() = 0;
 };
-
-} // namespace
 
 class I4
 {

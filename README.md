@@ -55,6 +55,7 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
  + easy integration with the project build system -> generate mocks files for each interface from given files limited to the project (for example via project namespace)
  + able to generate cpp files with default constructors (to speed up compilation times)
  + generate pretty output (one mock per file)
+ + mocking class templates
  + easy to extend (~300 lines of code)
  + handle c++ operators
 
@@ -73,6 +74,8 @@ find project -iname "*.h" -or -iname "*.hpp" | xargs "project/externals/gmock.py
 # file: interface file name
 # dir: interface directory
 # guard: header guard
+# template: template parameters
+# template_interface: template interface class
 # interface: interface class
 # mock_methods: generated gmock methods
 # generated_dir: generated directory
@@ -93,7 +96,7 @@ file_template_hpp = """\
 
 %(namespaces_begin)s
 
-class %(interface)sMock : public %(interface)s
+%(template)sclass %(interface)sMock : public %(template_interface)s
 {
 public:
 %(mock_methods)s

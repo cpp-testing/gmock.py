@@ -2,7 +2,6 @@
 #define I3_HPP
 
 namespace n1 {
-namespace {
 
 class I3
 {
@@ -30,7 +29,6 @@ private:
     virtual void f1() = 0;
 };
 
-} // namespace
 } // namespace n1
 
 #endif
