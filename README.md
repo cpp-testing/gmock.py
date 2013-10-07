@@ -2,7 +2,7 @@
 
 ### Requirements
  + [python](http://www.python.org) (tested with 2.7 and 3.3)
- + [libclang](http://clang.llvm.org) (tested with 3.2)
+ + [libclang](http://clang.llvm.org) (tested with 3.2 and 3.3)
 
 ### Download
 ```
@@ -159,7 +159,7 @@ public:
 #define TMOCK_HPP
 
 #include <gmock/gmock.h>
-#include "./given/T.hpp"
+#include "T.hpp"
 
 namespace n {
 
