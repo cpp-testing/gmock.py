@@ -76,6 +76,12 @@ class TestGMock(unittest.TestCase):
         self.assertTrue('I2_mock.cpp' in os.listdir(self.generated_dir))
         self.assertMocks();
 
+    def test_gmock_class_templates(self):
+        self.assertEqual(0, gmock.main(['../gmock.py', '-d', self.generated_dir, 'given/T.hpp']))
+        self.assertEqual(1, len([name for name in os.listdir(self.generated_dir)]))
+        self.assertTrue('TMock.hpp' in os.listdir(self.generated_dir))
+        self.assertMocks();
+
 if __name__ == '__main__':
     unittest.main()
 
