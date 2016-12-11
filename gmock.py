@@ -12,6 +12,7 @@ from clang.cindex import Index
 from clang.cindex import TranslationUnit
 from clang.cindex import Cursor
 from clang.cindex import CursorKind
+from clang.cindex import Config
 
 if sys.version_info < (3, 0):
     import __builtin__
@@ -128,29 +129,10 @@ class mock_method:
         return ''.join(mock)
 
 class mock_generator:
-    def __is_template_class(self, decl):
-        return '<' in decl
-
-    def __is_const_function(self, tokens):
-        for token in reversed(tokens):
-            if token == 'const':
-                return True
-            elif token == ')':
-                return False
-        return False
-
-    def __is_virtual_function(self, tokens):
-        return 'virtual' in [token for token in tokens]
-
-    def __is_pure_virtual_function(self, tokens):
-        return len(tokens) >= 3 and                     \
-               self.__is_virtual_function(tokens) and   \
-               tokens[-3] == '=' and                    \
-               tokens[-2] == '0' and                    \
-               tokens[-1] == ';'
+    def __is_template_class(self, expr):
+        return '<' in expr
 
     def __get_result_type(self, tokens, name):
-        assert(self.__is_pure_virtual_function(tokens))
         result_type = []
         for token in tokens:
             if token in [name, 'operator']:
@@ -161,11 +143,11 @@ class mock_generator:
                 result_type.append(' ')
         return ''.join(result_type)
 
-    def __pretty_template(self, decl):
+    def __pretty_template(self, expr):
         first = False
         typename = []
         typenames = []
-        for token in decl.split("::")[-1]:
+        for token in expr.split("::")[-1]:
             if token == '<':
                 first = True
             elif token == ',':
@@ -199,24 +181,24 @@ class mock_generator:
             first = False
         return ''.join(result)
 
-    def __pretty_namespaces_begin(self, decl):
+    def __pretty_namespaces_begin(self, expr):
         result = []
-        for i, namespace in enumerate(decl.split("::")[0 : -1]):
+        for i, namespace in enumerate(expr.split("::")[0 : -1]):
             i and result.append('\n')
             result.append("namespace " + namespace + " {")
         return ''.join(result)
 
-    def __pretty_namespaces_end(self, decl):
+    def __pretty_namespaces_end(self, expr):
         result = []
-        for i, namespace in enumerate(decl.split("::")[0 : -1]):
+        for i, namespace in enumerate(expr.split("::")[0 : -1]):
             i and result.append('\n')
             result.append("} // namespace " + namespace)
         return ''.join(result)
 
-    def __get_interface(self, decl):
+    def __get_interface(self, expr):
         result = []
         ignore = False
-        for token in decl.split("::")[-1]:
+        for token in expr.split("::")[-1]:
             if token == '<':
                 ignore = True
             if not ignore:
@@ -225,32 +207,32 @@ class mock_generator:
                 ignore = False
         return ''.join(result)
 
-    def __get_mock_methods(self, node, mock_methods, decl = ""):
+    def __get_mock_methods(self, node, mock_methods, expr = ""):
         name = str(node.displayname, self.encode)
         if node.kind == CursorKind.CXX_METHOD:
             spelling = str(node.spelling, self.encode)
             tokens = [str(token.spelling, self.encode) for token in node.get_tokens()]
             file = str(node.location.file.name, self.encode)
-            if self.__is_pure_virtual_function(tokens):
-                mock_methods.setdefault(decl, [file]).append(
+            if node.is_pure_virtual_method():
+                mock_methods.setdefault(expr, [file]).append(
                     mock_method(
                          self.__get_result_type(tokens, spelling),
                          spelling,
-                         self.__is_const_function(tokens),
-                         self.__is_template_class(decl),
+                         node.is_const_method(),
+                         self.__is_template_class(expr),
                          len(list(node.get_arguments())),
                          name[len(node.spelling) + 1 : -1]
                     )
                 )
         elif node.kind in [CursorKind.CLASS_TEMPLATE, CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL, CursorKind.NAMESPACE]:
-            decl = decl == "" and name or decl + (name == "" and "" or "::") + name
-            if decl.startswith(self.decl):
-                [self.__get_mock_methods(c, mock_methods, decl) for c in node.get_children()]
+            expr = expr == "" and name or expr + (name == "" and "" or "::") + name
+            if expr.startswith(self.expr):
+                [self.__get_mock_methods(c, mock_methods, expr) for c in node.get_children()]
         else:
-            [self.__get_mock_methods(c, mock_methods, decl) for c in node.get_children()]
+            [self.__get_mock_methods(c, mock_methods, expr) for c in node.get_children()]
 
-    def __generate_file(self, decl, mock_methods, file_type, file_template_type):
-        interface = self.__get_interface(decl)
+    def __generate_file(self, expr, mock_methods, file_type, file_template_type):
+        interface = self.__get_interface(expr)
         mock_file = {
             'hpp' : self.mock_file_hpp % { 'interface' : interface },
             'cpp' : self.mock_file_cpp % { 'interface' : interface },
@@ -265,12 +247,12 @@ class mock_generator:
                 'guard' : mock_file[file_type].replace('.', '_').upper(),
                 'dir' : os.path.dirname(mock_methods[0]),
                 'file' : os.path.basename(mock_methods[0]),
-                'namespaces_begin' : self.__pretty_namespaces_begin(decl),
+                'namespaces_begin' : self.__pretty_namespaces_begin(expr),
                 'interface' : interface,
-                'template_interface' : decl.split("::")[-1],
-                'template' : self.__pretty_template(decl),
+                'template_interface' : expr.split("::")[-1],
+                'template' : self.__pretty_template(expr),
                 'mock_methods' : self.__pretty_mock_methods(mock_methods[1:]),
-                'namespaces_end' : self.__pretty_namespaces_end(decl)
+                'namespaces_end' : self.__pretty_namespaces_end(expr)
             })
 
     def __parse(self, files, args):
@@ -288,8 +270,8 @@ class mock_generator:
           , options = TranslationUnit.PARSE_SKIP_FUNCTION_BODIES | TranslationUnit.PARSE_INCOMPLETE
         )
 
-    def __init__(self, files, args, decl, path, mock_file_hpp, file_template_hpp, mock_file_cpp, file_template_cpp, encode = "utf-8"):
-        self.decl = decl
+    def __init__(self, files, args, expr, path, mock_file_hpp, file_template_hpp, mock_file_cpp, file_template_cpp, encode = "utf-8"):
+        self.expr = expr
         self.path = path
         self.mock_file_hpp = mock_file_hpp
         self.file_template_hpp = file_template_hpp
@@ -301,10 +283,10 @@ class mock_generator:
     def generate(self):
         mock_methods = {}
         self.__get_mock_methods(self.cursor, mock_methods)
-        for decl, mock_methods in mock_methods.items():
+        for expr, mock_methods in mock_methods.items():
             if len(mock_methods) > 0:
-                self.file_template_hpp != "" and self.__generate_file(decl, mock_methods, "hpp", self.file_template_hpp)
-                self.file_template_cpp != "" and self.__generate_file(decl, mock_methods, "cpp", self.file_template_cpp)
+                self.file_template_hpp != "" and self.__generate_file(expr, mock_methods, "hpp", self.file_template_hpp)
+                self.file_template_cpp != "" and self.__generate_file(expr, mock_methods, "cpp", self.file_template_cpp)
         return 0
 
 def main(args):
@@ -318,7 +300,8 @@ def main(args):
     parser = OptionParser(usage="usage: %prog [options] files...")
     parser.add_option("-c", "--config", dest="config", default=default_config, help="config FILE (default='gmock.conf')", metavar="FILE")
     parser.add_option("-d", "--dir", dest="path", default=".", help="dir for generated mocks (default='.')", metavar="DIR")
-    parser.add_option("-l", "--limit", dest="decl", default="", help="limit to interfaces within declaration (default='')", metavar="LIMIT")
+    parser.add_option("-e", "--expr", dest="expr", default="", help="limit to interfaces within expression (default='')", metavar="LIMIT")
+    parser.add_option("-l", "--libclang", dest="libclang", default=None, help="path to libclang.so (default=None)", metavar="LIBCLANG")
     (options, args) = parser.parse_args(args)
 
     if len(args) == 1:
@@ -328,10 +311,13 @@ def main(args):
     with open(options.config, 'r') as file:
         exec(file.read(), config)
 
+    if options.libclang:
+      Config.set_library_file(options.libclang)
+
     return mock_generator(
         files = args[1:],
         args = clang_args,
-        decl = options.decl,
+        expr = options.expr,
         path = options.path,
         mock_file_hpp = config['mock_file_hpp'],
         file_template_hpp = config['file_template_hpp'],
