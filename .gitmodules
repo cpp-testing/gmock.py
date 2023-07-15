@@ -1,3 +1,0 @@
-[submodule "clang"]
-	path = clang
-	url = https://github.com/arakashic/clang-python3.git
