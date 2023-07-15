@@ -1,1 +1,6 @@
 *.pyc
+
+# Generated files
+*.hpp
+*.h
+*.cpp
