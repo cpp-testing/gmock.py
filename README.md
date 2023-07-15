@@ -9,6 +9,13 @@
     [ ] Update defaults for variables that can be set in the `.conf` file  
 [x] Add requirements.txt  
 
+### Notes
+
+- Seems like the header guards are constructed from the given file name in the `.conf` file 
+and use the formatting given there => header guard formatting should be different.
+
+---------
+
 ### Requirements
  + [python](http://www.python.org) (tested with 2.7 and 3.3)
  + [libclang](http://clang.llvm.org) (tested with 3.2 and 3.3)
