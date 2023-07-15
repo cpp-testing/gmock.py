@@ -1,6 +1,13 @@
 **Google Mock** mocks generator based on libclang
 
-[![Code Health](https://landscape.io/github/krzysztof-jusiak/gmock/master/landscape.png)](https://landscape.io/github/krzysztof-jusiak/gmock/master)
+[![Code Health](https://landscape.io/github/krzysztof-jusiak/gmock.py/master/landscape.png)](https://landscape.io/github/krzysztof-jusiak/gmock.py/master)
+
+### ToDos
+[ ] Constructor & Destructor missing for mock class  
+[ ] Implementation file needs to be added for ctor & dtor  
+[ ] Mock class & file names have to renamed according to standard  
+    [ ] Update defaults for variables that can be set in the `.conf` file  
+[x] Add requirements.txt  
 
 ### Requirements
  + [python](http://www.python.org) (tested with 2.7 and 3.3)
