@@ -1,6 +1,4 @@
-**Google Mock** mocks generator based on libclang
-
-[![Code Health](https://landscape.io/github/krzysztof-jusiak/gmock.py/master/landscape.png)](https://landscape.io/github/krzysztof-jusiak/gmock.py/master)
+# **Google Mock** mocks generator based on libclang
 
 ### ToDos
 [ ] Constructor & Destructor missing for mock class  
