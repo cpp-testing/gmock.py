@@ -5,6 +5,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
+
 import os
 import sys
 from optparse import OptionParser
@@ -208,11 +209,11 @@ class mock_generator:
         return ''.join(result)
 
     def __get_mock_methods(self, node, mock_methods, expr = ""):
-        name = str(node.displayname, self.encode)
+        name = node.displayname
         if node.kind == CursorKind.CXX_METHOD:
-            spelling = str(node.spelling, self.encode)
-            tokens = [str(token.spelling, self.encode) for token in node.get_tokens()]
-            file = str(node.location.file.name, self.encode)
+            spelling = node.spelling
+            tokens = [token.spelling for token in node.get_tokens()]
+            file = node.location.file.name
             if node.is_pure_virtual_method():
                 mock_methods.setdefault(expr, [file]).append(
                     mock_method(
@@ -295,6 +296,7 @@ def main(args):
     if args_split:
         args, clang_args = args[:args_split[0]], args[args_split[0] + 1:]
 
+    # ToDo: fix: filepath is not correct
     default_config = os.path.dirname(args[0]) + "/gmock.conf"
 
     parser = OptionParser(usage="usage: %prog [options] files...")
