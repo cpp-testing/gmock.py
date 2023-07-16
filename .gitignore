@@ -1,4 +1,6 @@
 *.pyc
+.vscode/
+.DS_Store
 
 # Generated files
 *.hpp
