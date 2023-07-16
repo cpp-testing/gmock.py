@@ -260,12 +260,20 @@ class mock_generator:
 
     def __generate_file(self, expr, mock_methods, file_type, file_template_type):
         interface = self.__get_interface(expr)
+        # Note:
+        # This interface var is obtained from the interface code file
+        # and is the abstract class name stored as a string. One option is to
+        # create a wrapper class to format strings in certain formats like
+        # snake case for file names or make a utility function...
         mock_file = {
             "hpp": self.mock_file_hpp % {"interface": interface},
             "cpp": self.mock_file_cpp % {"interface": interface},
         }
         path = self.path + "/" + mock_file[file_type]
         not os.path.exists(os.path.dirname(path)) and os.makedirs(os.path.dirname(path))
+        # Note: This is where the var substitution seems to be happening.
+        # Evidently, these are the variables/data obtained from parsing
+        # the code file with libclang as well.
         with open(path, "w") as file:
             file.write(
                 file_template_type
@@ -273,6 +281,9 @@ class mock_generator:
                     "mock_file_hpp": mock_file["hpp"],
                     "mock_file_cpp": mock_file["cpp"],
                     "generated_dir": self.path,
+                    # Note: this is where the header guard is being formatted
+                    # the way it is rn. This can be changed with that wrapper
+                    # string as well.
                     "guard": mock_file[file_type].replace(".", "_").upper(),
                     "dir": os.path.dirname(mock_methods[0]),
                     "file": os.path.basename(mock_methods[0]),
