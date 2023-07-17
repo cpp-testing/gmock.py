@@ -12,6 +12,7 @@
 - [ ] Function paramters that have '`::`' in the typename like `std::string`, `std::vector`, `std::shared_ptr` 
 are being replaced with `int`. This issue doesn't exist if such types are being returned by a function
 - [ ] Parameter names are missing from the generated mock methods
+- [ ] Update string (%s) formatter use to `python3` `.format()` or equivalent 
 
 ### Notes
 
