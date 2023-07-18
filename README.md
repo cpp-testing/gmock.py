@@ -16,8 +16,7 @@ are being replaced with `int`. This issue doesn't exist if such types are being 
 
 ### Notes
 
-- Seems like the header guards are constructed from the given file name in the `.conf` file 
-and use the formatting given there => header guard formatting should be different.
+</>
 
 ---------
 
