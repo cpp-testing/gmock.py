@@ -6,7 +6,7 @@
 - [x] Constructor & Destructor missing for mock class  
 - [x] Implementation file needs to be added for ctor & dtor  
 - [x] Mock class & file names have to renamed according to standard  
-- [ ] `.conf` file not found error if not provided as argument (even though the filepath generated seems to be correct, possibly a local set up issue)
+- [x] `.conf` file not found error if not provided as argument (even though the filepath generated seems to be correct, possibly a local set up issue) => turns out it was a local set up issue...
 - [x] Add requirements.txt 
 - [ ] Function paramters that have '`::`' in the typename like `std::string`, `std::vector`, `std::shared_ptr` 
 are being replaced with `int`. This issue doesn't exist if such types are being returned by a function
