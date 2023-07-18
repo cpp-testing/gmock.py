@@ -42,11 +42,11 @@ import sys
 from optparse import OptionParser
 from clang.cindex import Index
 from clang.cindex import TranslationUnit
-from clang.cindex import Cursor
+
+# from clang.cindex import Cursor
 from clang.cindex import CursorKind
 from clang.cindex import Config
 from enum import Enum
-from copy import deepcopy
 
 CaseTypes = Enum("CaseTypes", ["SNAKE_CASE", "KEBAB_CASE", "SPACE"])
 
@@ -467,7 +467,6 @@ def main(args):
     if args_split:
         args, clang_args = args[: args_split[0]], args[args_split[0] + 1 :]
 
-    # ToDo: fix: filepath is not correct
     default_config = os.path.dirname(args[0]) + "/gmock.conf"
 
     parser = OptionParser(usage="usage: %prog [options] files...")
