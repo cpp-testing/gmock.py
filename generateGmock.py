@@ -15,6 +15,7 @@ from clang.cindex import Cursor
 from clang.cindex import CursorKind
 from clang.cindex import Config
 from enum import Enum
+from copy import deepcopy
 
 CaseTypes = Enum("CaseTypes", ["SNAKE_CASE", "KEBAB_CASE", "SPACE"])
 
@@ -35,7 +36,7 @@ class StringTransform:
         self.obtained_string = identifier
 
     @property
-    def _string_parts(self):
+    def _string_parts(self) -> list:
         """
         Helper method to obtain a list of words in a given string that
         contains the supported delimeters.
@@ -56,50 +57,51 @@ class StringTransform:
 
         # Leading or trailing CaseTypes will result in empty strings
         # as elements of the broken string array, remove them
+        # Also remove 'intf' from name
         for elem in string_parts:
-            if elem == "":
+            if elem == "" or elem == "intf":
                 string_parts.remove(elem)
 
         return string_parts
 
     @property
-    def _snake_case(self):
+    def _snake_case(self) -> str:
         return self.delimiters[CaseTypes.SNAKE_CASE].join(self._string_parts)
 
     @property
-    def _kebab_case(self):
+    def _kebab_case(self) -> str:
         return self.delimiters[CaseTypes.KEBAB_CASE].join(self._string_parts)
 
     @property
-    def _space_separated(self):
+    def _space_separated(self) -> str:
         return self.delimiters[CaseTypes.SPACE].join(self._string_parts)
 
     @property
-    def _pascal_case(self):
+    def _pascal_case(self) -> str:
         return self._space_separated.title().replace(
             self.delimiters[CaseTypes.SPACE], ""
         )
 
     @property
-    def _camel_case(self):
+    def _camel_case(self) -> str:
         return self._pascal_case[0].lower() + self._pascal_case[1:]
 
     @property
-    def gmock_h_file_name(self):
+    def gmock_h_file_name(self) -> str:
         return self._kebab_case + self.delimiters[CaseTypes.KEBAB_CASE] + "gmock.h"
 
     @property
-    def gmock_cpp_file_name(self):
+    def gmock_cpp_file_name(self) -> str:
         return self._kebab_case + self.delimiters[CaseTypes.KEBAB_CASE] + "gmock.cpp"
 
     @property
-    def gmock_class_name(self):
+    def gmock_class_name(self) -> str:
         return (
             self._snake_case.upper() + self.delimiters[CaseTypes.SNAKE_CASE] + "GMOCK"
         )
 
     @property
-    def header_guard_name(self):
+    def header_guard_name(self) -> str:
         return (
             self.gmock_class_name
             + self.delimiters[CaseTypes.SNAKE_CASE]
@@ -342,21 +344,20 @@ class mock_generator:
             ]
 
     def __generate_file(self, expr, mock_methods, file_type, file_template_type):
-        interface = self.__get_interface(expr)
-        # Note:
-        # This interface var is obtained from the interface code file
-        # and is the abstract class name stored as a string. One option is to
-        # create a wrapper class to format strings in certain formats like
-        # snake case for file names or make a utility function...
+        """
+        Generates the gmock files by obtaining the parsed info and performing
+        text substitutions in the templates given.
+        """
+        interfaceNameObj = StringTransform(self.__get_interface(expr))
+
         mock_file = {
-            "hpp": self.mock_file_hpp % {"interface": interface},
-            "cpp": self.mock_file_cpp % {"interface": interface},
+            "hpp": interfaceNameObj.gmock_h_file_name,
+            "cpp": interfaceNameObj.gmock_cpp_file_name,
         }
+
         path = self.path + "/" + mock_file[file_type]
         not os.path.exists(os.path.dirname(path)) and os.makedirs(os.path.dirname(path))
-        # Note: This is where the var substitution seems to be happening.
-        # Evidently, these are the variables/data obtained from parsing
-        # the code file with libclang as well.
+
         with open(path, "w") as file:
             file.write(
                 file_template_type
@@ -364,14 +365,12 @@ class mock_generator:
                     "mock_file_hpp": mock_file["hpp"],
                     "mock_file_cpp": mock_file["cpp"],
                     "generated_dir": self.path,
-                    # Note: this is where the header guard is being formatted
-                    # the way it is rn. This can be changed with that wrapper
-                    # string as well.
-                    "guard": mock_file[file_type].replace(".", "_").upper(),
+                    "guard": interfaceNameObj.header_guard_name,
                     "dir": os.path.dirname(mock_methods[0]),
                     "file": os.path.basename(mock_methods[0]),
                     "namespaces_begin": self.__pretty_namespaces_begin(expr),
-                    "interface": interface,
+                    "interface": interfaceNameObj._snake_case.upper(),
+                    "class_name": interfaceNameObj.gmock_class_name,
                     "template_interface": expr.split("::")[-1],
                     "template": self.__pretty_template(expr),
                     "mock_methods": self.__pretty_mock_methods(mock_methods[1:]),
