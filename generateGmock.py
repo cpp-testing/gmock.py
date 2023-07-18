@@ -14,15 +14,98 @@ from clang.cindex import TranslationUnit
 from clang.cindex import Cursor
 from clang.cindex import CursorKind
 from clang.cindex import Config
+from enum import Enum
 
-if sys.version_info < (3, 0):
-    import __builtin__
+CaseTypes = Enum("CaseTypes", ["SNAKE_CASE", "KEBAB_CASE", "SPACE"])
 
-    def str(object, unused=None):
-        return __builtin__.str(object)
 
-    def bytes(object, unused=None):
-        return __builtin__.bytes(object)
+class StringTransform:
+    """
+    A wrapper class to store identifier names and transform
+    them into different formats.
+    """
+
+    delimiters = {
+        CaseTypes.KEBAB_CASE: "-",
+        CaseTypes.SNAKE_CASE: "_",
+        CaseTypes.SPACE: " ",
+    }
+
+    def __init__(self, identifier: str):
+        self.obtained_string = identifier
+
+    @property
+    def _string_parts(self):
+        """
+        Helper method to obtain a list of words in a given string that
+        contains the supported delimeters.
+        """
+        string_parts = []
+
+        # Assuming that there will be one kind of delimiter in a string
+        # Might fix this in the future depending on use cases
+        for delim in self.delimiters.values():
+            if delim in self.obtained_string:
+                string_parts = self.obtained_string.lower().split(delim)
+                break
+
+        # ToDo: might remove and support to separate out strings
+        # in capital snake case etc.
+        if len(string_parts) == 0:
+            raise ValueError("Error: Unsupported delimeter")
+
+        # Leading or trailing CaseTypes will result in empty strings
+        # as elements of the broken string array, remove them
+        for elem in string_parts:
+            if elem == "":
+                string_parts.remove(elem)
+
+        return string_parts
+
+    @property
+    def _snake_case(self):
+        return self.delimiters[CaseTypes.SNAKE_CASE].join(self._string_parts)
+
+    @property
+    def _kebab_case(self):
+        return self.delimiters[CaseTypes.KEBAB_CASE].join(self._string_parts)
+
+    @property
+    def _space_separated(self):
+        return self.delimiters[CaseTypes.SPACE].join(self._string_parts)
+
+    @property
+    def _pascal_case(self):
+        return self._space_separated.title().replace(
+            self.delimiters[CaseTypes.SPACE], ""
+        )
+
+    @property
+    def _camel_case(self):
+        return self._pascal_case[0].lower() + self._pascal_case[1:]
+
+    @property
+    def gmock_h_file_name(self):
+        return self._kebab_case + self.delimiters[CaseTypes.KEBAB_CASE] + "gmock.h"
+
+    @property
+    def gmock_cpp_file_name(self):
+        return self._kebab_case + self.delimiters[CaseTypes.KEBAB_CASE] + "gmock.cpp"
+
+    @property
+    def gmock_class_name(self):
+        return (
+            self._snake_case.upper() + self.delimiters[CaseTypes.SNAKE_CASE] + "GMOCK"
+        )
+
+    @property
+    def header_guard_name(self):
+        return (
+            self.gmock_class_name
+            + self.delimiters[CaseTypes.SNAKE_CASE]
+            + "H"
+            + self.delimiters[CaseTypes.SNAKE_CASE]
+        )
 
 
 class mock_method:
