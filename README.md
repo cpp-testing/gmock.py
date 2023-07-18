@@ -5,14 +5,14 @@
 ### ToDos
 - [x] Constructor & Destructor missing for mock class  
 - [x] Implementation file needs to be added for ctor & dtor  
-- [ ] Mock class & file names have to renamed according to standard  
-   - [ ] Update defaults for variables that can be set in the `.conf` file
+- [x] Mock class & file names have to renamed according to standard  
 - [ ] `.conf` file not found error if not provided as argument (even though the filepath generated seems to be correct, possibly a local set up issue)
 - [x] Add requirements.txt 
 - [ ] Function paramters that have '`::`' in the typename like `std::string`, `std::vector`, `std::shared_ptr` 
 are being replaced with `int`. This issue doesn't exist if such types are being returned by a function
 - [ ] Parameter names are missing from the generated mock methods
-- [ ] Update string (%s) formatter use to `python3` `.format()` or equivalent 
+- [ ] Update string (%s) formatter use to `python3` `.format()` or equivalent
+    - [ ] Ideal goal would be upgrade this to use `.mustache` files or something similar
 
 ### Notes
 
