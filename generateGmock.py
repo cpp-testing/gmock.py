@@ -340,13 +340,35 @@ class mock_generator:
         return "".join(result)
 
     def __get_mock_methods(self, node, mock_methods, expr=""):
+        # Here node.displayname is returning 'int' for a function
+        # argument with type of :: in name (e.g. setString(int)).
         name = node.displayname
+
         if node.kind == CursorKind.CXX_METHOD:
             spelling = node.spelling
             tokens = [token.spelling for token in node.get_tokens()]
             file = node.location.file.name
             if node.is_pure_virtual_method():
                 mock_methods.setdefault(expr, [file]).append(
+                    # Here we can modify the mock_method class and construct
+                    # it with some more specific info like methodName,
+                    # argtype, argname, returnType etc. by using apis for the
+                    # cursor object in libclang.
+                    # returnType = node.result_type.spelling
+                    # methodName = node.spelling
+                    #
+                    # Debugging through, it seems that libclang is indeed
+                    # parsing the parameter type incorrectly... It is giving
+                    # int for an std::string & is missing info like const etc.
+                    # For other methods, this is working and is fine, but not
+                    # with the ones with the aforementioned type.
+                    #
+                    # The way I propose about going this is getting the tokens
+                    # (see above) and get the tokens between '(' & ')' and
+                    # combining them into a string. Probably want to dig in a
+                    # little deeper and see how multiple argument tokens are
+                    # stored when obtained this way -- if as expected, can just
+                    # separate them based on the comma operator.
                     mock_method(
                         self.__get_result_type(tokens, spelling),
                         spelling,
