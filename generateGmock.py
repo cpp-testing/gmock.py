@@ -28,13 +28,11 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
-###===-------------------------------------------------------------------===###
+# =============================================================================
 #
-#               Modified and upgraded by Mustafa Siddiqui
+# Modified and upgraded by Mustafa Siddiqui (c) 2023.
 #
-#                                   (c) 2023
-#
-###===-------------------------------------------------------------------===###
+# =============================================================================
 #
 
 import os
@@ -42,11 +40,10 @@ import sys
 from optparse import OptionParser
 from clang.cindex import Index
 from clang.cindex import TranslationUnit
-
-# from clang.cindex import Cursor
 from clang.cindex import CursorKind
 from clang.cindex import Config
 from enum import Enum
+from typing import List
 
 CaseTypes = Enum("CaseTypes", ["SNAKE_CASE", "KEBAB_CASE", "SPACE"])
 
@@ -67,22 +64,21 @@ class StringTransform:
         self.obtained_string = identifier
 
     @property
-    def _string_parts(self) -> list:
+    def _string_parts(self) -> List[str]:
         """
         Helper method to obtain a list of words in a given string that
         contains the supported delimeters.
         """
         string_parts = []
 
-        # Assuming that there will be one kind of delimiter in a string
-        # Might fix this in the future depending on use cases
+        # Assuming that there will be one kind of delimiter in a string...
         for delim in self.delimiters.values():
             if delim in self.obtained_string:
                 string_parts = self.obtained_string.lower().split(delim)
                 break
 
-        # ToDo: might remove and support to separate out strings
-        # in capital snake case etc.
+        # Future feature (maybe): might remove and support to separate out
+        # strings in capital snake case etc.
         if len(string_parts) == 0:
             raise ValueError("Error: Unsupported delimeter")
 
@@ -141,7 +137,14 @@ class StringTransform:
         )
 
 
-class mock_method:
+class MockMethod:
+    """
+    Class that represents a mock method. It is constructed
+    with some variables representing different aspects of a
+    method & can generator a string representation of the
+    method in the appropriate manner for a gmock file.
+    """
+
     operators = {
         "operator,": "comma_operator",
         "operator!": "logical_not_operator",
@@ -260,11 +263,78 @@ class mock_method:
         return "".join(mock)
 
 
-class mock_generator:
-    def __is_template_class(self, expr):
+class MockGenerator:
+    """
+    Class that processes a given mock method object and generates
+    the gmock file(s).
+    """
+
+    def __init__(
+        self,
+        files,
+        args,
+        expr,
+        path,
+        mock_file_hpp,
+        file_template_hpp,
+        mock_file_cpp,
+        file_template_cpp,
+        encode="utf-8",
+    ):
+        self.expr = expr
+        self.path = path
+        self.mock_file_hpp = mock_file_hpp
+        self.file_template_hpp = file_template_hpp
+        self.mock_file_cpp = mock_file_cpp
+        self.file_template_cpp = file_template_cpp
+        self.encode = encode
+        self.cursor = self.__parse(files, args).cursor
+
+    def __is_template_class(self, expr: str) -> bool:
+        """
+        Checks if a class is a template class or not.
+        """
+
         return "<" in expr
 
-    def __get_result_type(self, tokens, name):
+    def __get_arguments(self, tokens: List[str]) -> str:
+        """
+        Processes a list of tokens containing what is read for a
+        method by the parser and returns everything in between '()'
+        in the order it is received / processed.
+        """
+        args_with_types = ""
+        reached_end_of_args = False
+        for i in range(0, len(tokens)):
+            if tokens[i - 1] == "(":
+                while tokens[i] != ")":
+                    args_with_types += tokens[i]
+
+                    # Don't insert spaces
+                    #  - before ','
+                    #  - before ')'
+                    #  - before '>'
+                    #  - before or after '::'
+                    #  - before or after '<'
+                    if not (
+                        tokens[i + 1] in ["::", ",", ")", "<", ">"]
+                        or tokens[i] in ["::", "<"]
+                    ):
+                        args_with_types += " "
+                    i += 1
+                reached_end_of_args = True
+
+            if reached_end_of_args:
+                break
+
+        return args_with_types
+
+    def __get_result_type(self, tokens: List[str], name: str) -> str:
+        """
+        Processes a list of tokens containing what is read for a
+        method by the parser and returns the return variable type.
+        """
+
         result_type = []
         for token in tokens:
             if token in [name, "operator"]:
@@ -275,7 +345,7 @@ class mock_generator:
                 result_type.append(" ")
         return "".join(result_type)
 
-    def __pretty_template(self, expr):
+    def __pretty_template(self, expr: str) -> str:
         first = False
         typename = []
         typenames = []
@@ -305,29 +375,29 @@ class mock_generator:
 
         return "".join(result)
 
-    def __pretty_mock_methods(self, mock_methods):
+    def __pretty_mock_methods(self, mock_methods: List[MockMethod]) -> str:
         result = []
         for i, mock_method in enumerate(mock_methods):
             i and result.append("\n")
             result.append(mock_method.to_string())
-            first = False
+
         return "".join(result)
 
-    def __pretty_namespaces_begin(self, expr):
+    def __pretty_namespaces_begin(self, expr: str) -> str:
         result = []
         for i, namespace in enumerate(expr.split("::")[0:-1]):
             i and result.append("\n")
             result.append("namespace " + namespace + " {")
         return "".join(result)
 
-    def __pretty_namespaces_end(self, expr):
+    def __pretty_namespaces_end(self, expr: str) -> str:
         result = []
         for i, namespace in enumerate(expr.split("::")[0:-1]):
             i and result.append("\n")
             result.append("} // namespace " + namespace)
         return "".join(result)
 
-    def __get_interface(self, expr):
+    def __get_interface(self, expr: str) -> str:
         result = []
         ignore = False
         for token in expr.split("::")[-1]:
@@ -339,45 +409,35 @@ class mock_generator:
                 ignore = False
         return "".join(result)
 
-    def __get_mock_methods(self, node, mock_methods, expr=""):
-        # Here node.displayname is returning 'int' for a function
-        # argument with type of :: in name (e.g. setString(int)).
+    def __get_mock_methods(self, node, mock_methods: dict, expr=""):
+        """
+        Populates the dictionary given with generated MockMethod
+        objects given a cursor (generic object representing a node in
+        the AST).
+        """
+
+        # Note: node.displayname returns 'int' for a function
+        # argument with the '::' operator in name
+        # (e.g. setString(std::string name)). 'int' is the default
+        # type in libclang when it comes across some error or
+        # undefined / unsupported situation.
         name = node.displayname
 
         if node.kind == CursorKind.CXX_METHOD:
             spelling = node.spelling
             tokens = [token.spelling for token in node.get_tokens()]
             file = node.location.file.name
-            if node.is_pure_virtual_method():
-                mock_methods.setdefault(expr, [file]).append(
-                    # Here we can modify the mock_method class and construct
-                    # it with some more specific info like methodName,
-                    # argtype, argname, returnType etc. by using apis for the
-                    # cursor object in libclang.
-                    # returnType = node.result_type.spelling
-                    # methodName = node.spelling
-                    #
-                    # Debugging through, it seems that libclang is indeed
-                    # parsing the parameter type incorrectly... It is giving
-                    # int for an std::string & is missing info like const etc.
-                    # For other methods, this is working and is fine, but not
-                    # with the ones with the aforementioned type.
-                    #
-                    # The way I propose about going this is getting the tokens
-                    # (see above) and get the tokens between '(' & ')' and
-                    # combining them into a string. Probably want to dig in a
-                    # little deeper and see how multiple argument tokens are
-                    # stored when obtained this way -- if as expected, can just
-                    # separate them based on the comma operator.
-                    mock_method(
-                        self.__get_result_type(tokens, spelling),
-                        spelling,
-                        node.is_const_method(),
-                        self.__is_template_class(expr),
-                        len(list(node.get_arguments())),
-                        name[len(node.spelling) + 1 : -1],
-                    )
+            mock_methods.setdefault(expr, [file]).append(
+                MockMethod(
+                    result_type=self.__get_result_type(tokens, spelling),
+                    name=spelling,
+                    is_const=node.is_const_method(),
+                    is_template=self.__is_template_class(expr),
+                    args_size=len(list(node.get_arguments())),
+                    args=self.__get_arguments(tokens),
+                    args_prefix=name[len(node.spelling) + 1 : -1],
                 )
+            )
         elif node.kind in [
             CursorKind.CLASS_TEMPLATE,
             CursorKind.STRUCT_DECL,
@@ -401,6 +461,7 @@ class mock_generator:
         Generates the gmock files by obtaining the parsed info and performing
         text substitutions in the templates given.
         """
+
         interfaceNameObj = StringTransform(self.__get_interface(expr))
 
         mock_file = {
@@ -440,34 +501,13 @@ class mock_generator:
                 result.append('#include "%(include)s"\n' % {"include": include})
             return "".join(result)
 
-        return Index.create(excludeDecls=True).parse(
+        return Index.create(excludeDecls=False).parse(
             path=tmp_file,
             args=args,
             unsaved_files=[(tmp_file, bytes(generate_includes(files), self.encode))],
             options=TranslationUnit.PARSE_SKIP_FUNCTION_BODIES
             | TranslationUnit.PARSE_INCOMPLETE,
         )
-
-    def __init__(
-        self,
-        files,
-        args,
-        expr,
-        path,
-        mock_file_hpp,
-        file_template_hpp,
-        mock_file_cpp,
-        file_template_cpp,
-        encode="utf-8",
-    ):
-        self.expr = expr
-        self.path = path
-        self.mock_file_hpp = mock_file_hpp
-        self.file_template_hpp = file_template_hpp
-        self.mock_file_cpp = mock_file_cpp
-        self.file_template_cpp = file_template_cpp
-        self.encode = encode
-        self.cursor = self.__parse(files, args).cursor
 
     def generate(self):
         mock_methods = {}
@@ -536,7 +576,7 @@ def main(args):
     if options.libclang:
         Config.set_library_file(options.libclang)
 
-    return mock_generator(
+    return MockGenerator(
         files=args[1:],
         args=clang_args,
         expr=options.expr,
